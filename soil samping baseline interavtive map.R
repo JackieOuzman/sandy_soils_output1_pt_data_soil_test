@@ -10,8 +10,12 @@ library(knitr)
 ########################            Define the directory              ##########
 ################################################################################
 
-site_number <- "7.Wharminda_Bonanza"
-site_name <- "Wharminda_Bonanza"
+# site_number <- "7.Wharminda_Bonanza"
+# site_name <- "Wharminda_Bonanza"
+
+site_number <- "4.Wharminda_Woodys"
+site_name <- "Wharminda_Woodys"
+
 dir <- "//fs1-cbr.nexus.csiro.au/{af-sandysoils-ii}"
 headDir <- paste0(dir, "/work/Output-1/", site_number)
 metadata_path <- paste0(dir,"/work/Output-1/0.Site-info/")
@@ -32,9 +36,14 @@ projetion_crs <- 7854 #GDA2020 / MGA Zone 54 (EPSG:7854).
 #   filter(Site == site_number)  %>% 
 #   filter(variable == paste0(analysis.type, " shp file" ))
 # 
-zones_shapefile_source <- paste0(headDir, "/3.Covariates/6.Clusters_Zones/FINAL/Opt_Clusters_7854.shp")
-boundary_shapefile_source <- paste0(headDir, "/1.Paddock_Boundary/Verran_1_boundary.shp")
-sampling_pts_shapefile_source <- paste0(headDir, "/4.Sampling/1.Baseline/ACTUAL/WHA_BON_soil_profile_N_with_zones.shp")
+# zones_shapefile_source <- paste0(headDir, "/3.Covariates/6.Clusters_Zones/FINAL/Opt_Clusters_7854.shp")
+# boundary_shapefile_source <- paste0(headDir, "/1.Paddock_Boundary/Verran_1_boundary.shp")
+# sampling_pts_shapefile_source <- paste0(headDir, "/4.Sampling/1.Baseline/ACTUAL/WHA_BON_soil_profile_N_with_zones.shp")
+
+zones_shapefile_source <- paste0(headDir, "/3.Covariates/6.Clusters_Zones/FINAL/WOD_4zones_syd_7854.shp")
+boundary_shapefile_source <- paste0(headDir, "/1.Paddock_Boundary/Wharminda_Boundary_Masked_7854.shp")
+sampling_pts_shapefile_source <- paste0(headDir, "/4.Sampling/2.InSeason/26/Pre_season_Soil_Sampling/ACTUAL/Centered/WHA_WOD_Pre_seas_soil_Actual_Cent_zone_SoilN.shp")
+
 
 # --- Read for shapefiles ---
 zones <- st_read(zones_shapefile_source)
@@ -60,12 +69,12 @@ sampling_pts   <- st_transform(sampling_pts,   4326)
 
 summary_tbl <- sampling_pts %>%
   st_drop_geometry() %>%           # drop spatial info, just need the data
-  group_by(cluster3) %>%
+  group_by(Zone) %>%
   summarise(
     n         = n(),
     mean_N    = round(mean(Min_N__kg_, na.rm = TRUE), 2)  
   ) %>%
-  arrange(cluster3)
+  arrange(Zone)
 #Format it as an HTML table for the map
 summary_tbl_html <- kable(summary_tbl,
                   format   = "html",
@@ -81,12 +90,12 @@ summary_tbl_html <- kable(summary_tbl,
 #### colours for the map
 ## zones
 pal_zones <- colorFactor(
-  palette = c("#404040", "#696969", "#F5F5DC"),
-  levels  = c(1, 2, 3)
+  palette = c("#404040", "#2F4F4F", "#F5F5DC", "#696969"),
+  levels  = c(1, 2, 3, 4)
 )
 
 
-
+zones
 
 
 # --- Build the map ---
@@ -97,11 +106,11 @@ map <- leaflet()  %>%
   
   addPolygons(
     data        = zones,
-    fillColor   = ~pal_zones(DN),
+    fillColor   = ~pal_zones(fcl_mdl),
     fillOpacity = 0.6,
     color       = "black",
     weight      = 1,
-    popup       = ~paste0("<b>Zone: ", DN, "</b>"),
+    popup       = ~paste0("<b>Zone: ", fcl_mdl, "</b>"),
     group       = "Polygons"
   )  %>% 
   
@@ -127,7 +136,7 @@ map <- leaflet()  %>%
     position = "bottomright",
     colors   = c("#404040", "#696969", "#F5F5DC"),
     labels   = c("Zone 1", "Zone 2", "Zone 3"),
-    title    = "Zone (inital)",
+    title    = "Zone",
     opacity  = 0.6        # 
   )  %>% 
   
@@ -150,5 +159,11 @@ map
 
 # --- Save as standalone HTML ---
 
-saveWidget(map, file = paste0(headDir, "/4.Sampling/1.Baseline/ACTUAL/WHA_BON_soilN_profile_Base.html")
+# saveWidget(map, file = paste0(headDir, "/4.Sampling/1.Baseline/ACTUAL/WHA_BON_soilN_profile_Base.html")
+#            , selfcontained = TRUE)
+
+
+saveWidget(map, file = paste0(headDir, "/4.Sampling/2.InSeason/26/Pre_season_Soil_Sampling/ACTUAL/WHA_Wood_soilN_profile_PreSeason.html")
            , selfcontained = TRUE)
+
+
