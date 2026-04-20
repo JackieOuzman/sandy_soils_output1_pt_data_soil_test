@@ -13,11 +13,11 @@ library(readr)
 ########################            Define the directory              ##########
 ################################################################################
 
-# site_number <- "7.Wharminda_Bonanza"
-# site_name <- "Wharminda_Bonanza"
+site_number <- "7.Wharminda_Bonanza"
+site_name <- "Wharminda_Bonanza"
 
-site_number <- "4.Wharminda_Woodys"
-site_name <- "Wharminda_Woodys"
+# site_number <- "4.Wharminda_Woodys"
+# site_name <- "Wharminda_Woodys"
 
 dir <- "//fs1-cbr.nexus.csiro.au/{af-sandysoils-ii}"
 headDir <- paste0(dir, "/work/Output-1/", site_number)
@@ -33,7 +33,7 @@ projetion_crs <- 7854 #GDA2020 / MGA Zone 54 (EPSG:7854).
 # --- Paths for shape files ---
 #################################################################################
 ## Note some samples are taken as a baseline other are pre season
-sampling_timing <- "Pre_Season" # Baseline
+sampling_timing <- "Baseline" #"Pre_Season" # "Baseline"
 year_sampling <- 26
 soil_test <- "Mineral N profile"
 
@@ -114,9 +114,17 @@ names(soil_results)
 names(sampling_pts)
 #join sampling location to results
 soil_results_plus_location <- left_join(sampling_pts,soil_results,
-                                        join_by(pt_ID_Soil == SampleNameShort ))
+                                        join_by(field_1 == SampleNameShort ))
                                         #join_by(SampleNameShort == pt_ID_Soil))
+                                        #join_by(pt_ID_Soil == SampleNameShort ))
 str(soil_results_plus_location)
+## Tidy up so that I am not using any predefined zones
+names(soil_results_plus_location)
+soil_results_plus_location <- soil_results_plus_location %>% 
+  dplyr::select("field_1",  "POINT_X" ,     "POINT_Y" ,
+                "Min N. kg/ha" ,"SamplingDate", "SampleDepth" , "geometry") %>% 
+  rename(ID = field_1)
+
 #join zone type
 soil_results_plus_location_zone <-st_join(soil_results_plus_location, zones, 
                                           join = st_within)  
@@ -125,16 +133,20 @@ soil_results_plus_location_zone <-st_join(soil_results_plus_location, zones,
 soil_results_plus_location_zone_strip <-st_join(soil_results_plus_location_zone, trial, 
                                           join = st_within)  
 
+### some site wont have treament yet if this happens
+soil_results_plus_location_zone_strip <- soil_results_plus_location_zone
 soil_results_plus_location_zone_strip
 ## rename some clms and tidy up
 
 soil_results_plus_location_zone_strip <- soil_results_plus_location_zone_strip %>% 
-  rename(ID = pt_ID_Soil ,
-         zone = fcl_mdl) %>% 
-  dplyr::select(-POLY_AREA.y, -POLY_AREA.x, -plot, -treat_id,-treat, -rep,id)
-
+  #rename(ID = pt_ID_Soil) %>% 
+  rename (zone = DN) %>% 
+  #dplyr::select(-POLY_AREA.y, -POLY_AREA.x, -plot, -treat_id,-treat, -rep,id)
+  dplyr::select(-"fid")
 names(soil_results_plus_location_zone_strip)
 
+## rename the zone clm 
+zones <- zones %>%  dplyr::rename(zone = DN)
 
 #################################################################################
 # --- Reproject to WGS84 (leaflet requires this) ---
@@ -233,23 +245,24 @@ map <- leaflet()  %>%
   
   addPolygons(
     data        = zones,
-    fillColor   = ~pal_zones(fcl_mdl),
+    fillColor   = ~pal_zones(zone),
     fillOpacity = 0.6,
     color       = "black",
     weight      = 1,
-    popup       = ~paste0("<b>Zone: ", fcl_mdl, "</b>"),
+    popup       = ~paste0("<b>Zone: ", zone, "</b>"),
     group       = "Zone"
   )  %>% 
   
-  addPolygons(
-    data        = trial,
-    fillColor   = ~pal_strip(treat_desc),
-    fillOpacity = 0.6,
-    color       = "black",
-    weight      = 1,
-    popup       = ~paste0("<b>Treatments: ", treat_desc, "</b>"),
-    group       = "Strips"
-  )%>% 
+  # some sites dont have strips yet
+  # addPolygons(
+  #   data        = trial,
+  #   fillColor   = ~pal_strip(treat_desc),
+  #   fillOpacity = 0.6,
+  #   color       = "black",
+  #   weight      = 1,
+  #   popup       = ~paste0("<b>Treatments: ", treat_desc, "</b>"),
+  #   group       = "Strips"
+  # )%>% 
   
   addCircleMarkers(
     data        = sampling_pts,
@@ -269,17 +282,20 @@ map <- leaflet()  %>%
     title    = "Zone",
     opacity  = 0.6
   )  %>% 
-  addLegend(
-    position = "bottomright",
-    colors   = unname(palette_strip),
-    labels   = strips_details_details$`Treatment Name`,
-    title    = "Treatment",
-    opacity  = 0.6
-  ) %>%
+  
+  # some sites dont have strips yet
+  # addLegend(
+  #   position = "bottomright",
+  #   colors   = unname(palette_strip),
+  #   labels   = strips_details_details$`Treatment Name`,
+  #   title    = "Treatment",
+  #   opacity  = 0.6
+  # ) %>%
   
   addLayersControl(
     baseGroups    = c("Light basemap", "Satellite"),
-    overlayGroups = c("Zone", "Strips", "Sampling points"),
+    #overlayGroups = c("Zone", "Strips", "Sampling points"),
+    overlayGroups = c("Zone", "Sampling points"),
     options       = layersControlOptions(collapsed = FALSE)
   )%>% 
   
@@ -307,7 +323,7 @@ map <- map %>%
 
 map
 
-# --- Save as standalone HTML ---
+# --- Save as standalone HTML ---? somehow this is not working as well
 
 name_of_map <- paste0(site_name, "_", sampling_timing, "_", soil_test, "_.html")
 name_of_data <- paste0(site_name, "_", sampling_timing, "_", soil_test, "_.csv")
@@ -317,6 +333,8 @@ saveWidget(map,
            file          = paste0(save_location, name_of_map),
            selfcontained = TRUE,
            libdir        = NULL)
+
+
 ### save the results 
 sampling_pts
 
