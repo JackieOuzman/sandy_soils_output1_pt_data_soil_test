@@ -4,7 +4,10 @@ library(sf)
 library(htmlwidgets)
 library(dplyr)
 library(knitr)
-
+library(readxl)
+#install.packages("mapview")
+library(mapview)
+library(readr)
 
 ################################################################################
 ########################            Define the directory              ##########
@@ -26,34 +29,122 @@ crs_used <- 4326 # Name: WGS 84 (World Geodetic System 1984) Type: Geographic co
 projetion_crs <- 7854 #GDA2020 / MGA Zone 54 (EPSG:7854).
 
 
+#################################################################################
+# --- Paths for shape files ---
+#################################################################################
+## Note some samples are taken as a baseline other are pre season
+sampling_timing <- "Pre_Season" # Baseline
+year_sampling <- 26
+soil_test <- "Mineral N profile"
 
-# --- Paths for shapefiles ---
+zones_shapefile_source <- readxl::read_excel(
+  paste0(metadata_path,metadata_file_name),
+  sheet = "file location etc") %>%
+  filter(Site == site_number)  %>%
+  filter(variable == "location of zone shp" ) %>% 
+  pull("file path")
 
-#This will be the template 
-# shapefile_source <- readxl::read_excel(
-#   paste0(metadata_path,metadata_file_name),
-#   sheet = "file location etc") %>% 
-#   filter(Site == site_number)  %>% 
-#   filter(variable == paste0(analysis.type, " shp file" ))
+boundary_shapefile_source <- readxl::read_excel(
+  paste0(metadata_path,metadata_file_name),
+  sheet = "file location etc") %>%
+  filter(Site == site_number)  %>%
+  filter(variable == "boundary_shapefile" ) %>% 
+  pull("file path")
+
+trial_shapefile_source<- readxl::read_excel(
+  paste0(metadata_path,metadata_file_name),
+  sheet = "file location etc") %>%
+  filter(Site == site_number)  %>%
+  filter(variable == "trial.plan" ) %>% 
+  pull("file path")
+
+sampling_pts_shapefile_source <- readxl::read_excel(
+  paste0(metadata_path,metadata_file_name),
+  sheet = "Soil_sampling_files_location") %>%
+  filter(Site == site_number)  %>%
+  filter(variable == paste0(sampling_timing, "_Soil_Sampling_Location_", year_sampling )) %>% 
+  pull("file path")
+
+Soil_test_results_source <- readxl::read_excel(
+  paste0(metadata_path,metadata_file_name),
+  sheet = "Soil_sampling_files_location") %>%
+  filter(Site == site_number)  %>%
+  filter(variable == paste0(sampling_timing, "_Soil_Sampling_MinN_profile_data_", year_sampling )) %>% 
+  pull("file path")
+
+Soil_test_results_source_sheet <- readxl::read_excel(
+  paste0(metadata_path,metadata_file_name),
+  sheet = "Soil_sampling_files_location") %>%
+  filter(Site == site_number)  %>%
+  filter(variable == paste0(sampling_timing, "_Soil_Sampling_MinN_profile_data_", year_sampling )) %>% 
+  pull("other details")
+
+
+
+
+
+
 # 
 # zones_shapefile_source <- paste0(headDir, "/3.Covariates/6.Clusters_Zones/FINAL/Opt_Clusters_7854.shp")
 # boundary_shapefile_source <- paste0(headDir, "/1.Paddock_Boundary/Verran_1_boundary.shp")
 # sampling_pts_shapefile_source <- paste0(headDir, "/4.Sampling/1.Baseline/ACTUAL/WHA_BON_soil_profile_N_with_zones.shp")
 
-zones_shapefile_source <- paste0(headDir, "/3.Covariates/6.Clusters_Zones/FINAL/WOD_4zones_syd_7854.shp")
-boundary_shapefile_source <- paste0(headDir, "/1.Paddock_Boundary/Wharminda_Boundary_Masked_7854.shp")
-sampling_pts_shapefile_source <- paste0(headDir, "/4.Sampling/2.InSeason/26/Pre_season_Soil_Sampling/ACTUAL/Centered/WHA_WOD_Pre_seas_soil_Actual_Cent_zone_SoilN.shp")
+# zones_shapefile_source <- paste0(headDir, "/3.Covariates/6.Clusters_Zones/FINAL/WOD_4zones_syd_7854.shp")
+# boundary_shapefile_source <- paste0(headDir, "/1.Paddock_Boundary/Wharminda_Boundary_Masked_7854.shp")
+# sampling_pts_shapefile_source <- paste0(headDir, "/4.Sampling/2.InSeason/26/Pre_season_Soil_Sampling/ACTUAL/Centered/WHA_WOD_Pre_seas_soil_Actual_Cent_zone_SoilN.shp")
 
 
+
+
+
+#################################################################################
 # --- Read for shapefiles ---
-zones <- st_read(zones_shapefile_source)
-bounadry    <- st_read(boundary_shapefile_source)
-sampling_pts   <- st_read(sampling_pts_shapefile_source)
+zones <- st_read(paste0(headDir, zones_shapefile_source))
+bounadry    <- st_read(paste0(headDir,boundary_shapefile_source))
+trial    <- st_read(paste0(headDir,trial_shapefile_source))
+sampling_pts   <- st_read(paste0(headDir,sampling_pts_shapefile_source))
+soil_results   <- read_excel(paste0(headDir,Soil_test_results_source), sheet = Soil_test_results_source_sheet)
+#################################################################################
 
+ 
+#################################################################################
+### Join the sampling pts to the soil test results
+#################################################################################
+names(soil_results)
+names(sampling_pts)
+#join sampling location to results
+soil_results_plus_location <- left_join(sampling_pts,soil_results,
+                                        join_by(pt_ID_Soil == SampleNameShort ))
+                                        #join_by(SampleNameShort == pt_ID_Soil))
+str(soil_results_plus_location)
+#join zone type
+soil_results_plus_location_zone <-st_join(soil_results_plus_location, zones, 
+                                          join = st_within)  
+
+#join trial / treatment strip 
+soil_results_plus_location_zone_strip <-st_join(soil_results_plus_location_zone, trial, 
+                                          join = st_within)  
+
+soil_results_plus_location_zone_strip
+## rename some clms and tidy up
+
+soil_results_plus_location_zone_strip <- soil_results_plus_location_zone_strip %>% 
+  rename(ID = pt_ID_Soil ,
+         zone = fcl_mdl) %>% 
+  dplyr::select(-POLY_AREA.y, -POLY_AREA.x, -plot, -treat_id,-treat, -rep,id)
+
+names(soil_results_plus_location_zone_strip)
+
+
+#################################################################################
 # --- Reproject to WGS84 (leaflet requires this) ---
-zones <- st_transform(zones, 4326)
-bounadry    <- st_transform(bounadry,    4326)
-sampling_pts   <- st_transform(sampling_pts,   4326)
+#################################################################################
+
+zones         <- st_transform(zones, 4326)
+bounadry      <- st_transform(bounadry, 4326)
+zones         <- st_transform(zones, 4326)
+sampling_pts  <- st_transform(soil_results_plus_location_zone_strip, 4326)
+trial         <- st_transform(trial, 4326)
 
 ## check
 # st_crs(zones)$epsg
@@ -64,17 +155,19 @@ sampling_pts   <- st_transform(sampling_pts,   4326)
 # zones    <- st_make_valid(zones)
 # bounadry <- st_make_valid(bounadry)
 
-
+#################################################################################
 #### summary of soil N by zones
+#################################################################################
+
 
 summary_tbl <- sampling_pts %>%
   st_drop_geometry() %>%           # drop spatial info, just need the data
-  group_by(Zone) %>%
+  group_by(zone) %>%
   summarise(
     n         = n(),
-    mean_N    = round(mean(Min_N__kg_, na.rm = TRUE), 2)  
+    mean_N    = round(mean(`Min N. kg/ha`, na.rm = TRUE), 2)  
   ) %>%
-  arrange(Zone)
+  arrange(zone)
 #Format it as an HTML table for the map
 summary_tbl_html <- kable(summary_tbl,
                   format   = "html",
@@ -86,33 +179,49 @@ summary_tbl_html <- kable(summary_tbl,
     font_size         = 12
   )
 
+summary_tbl_html
 
-#### colours for the map
+#################################################################################
+#### colors for the map
+#################################################################################
 ## zones
+
+zone_details_details <- readxl::read_excel(
+  paste0(metadata_path,metadata_file_name),
+  sheet = "zone_details") %>%
+  filter(Site == site_number)  
+  
+palette_zone <- setNames(zone_details_details$`Hex Code`,
+                    zone_details_details$`zone names`  )
+
 pal_zones <- colorFactor(
-  palette = c("#404040", "#2F4F4F", "#F5F5DC", "#696969"),
-  levels  = c(1, 2, 3, 4)
+  palette = palette_zone,
+  levels  = names(palette_zone)
+)
+
+## strips
+strips_details_details <- readxl::read_excel(
+  paste0(metadata_path,metadata_file_name),
+  sheet = "treatment names") %>%
+  filter(Site == site_number)  
+
+palette_strip <- setNames(strips_details_details$Hex,
+                          strips_details_details$`Treatment Name`)
+
+
+pal_strip <- colorFactor(
+  palette = palette_strip,
+  levels  = names(palette_strip)
 )
 
 
-zones
-
-
+#################################################################################
 # --- Build the map ---
+#################################################################################
 map <- leaflet()  %>% 
   
   addProviderTiles("CartoDB.Positron",  group = "Light basemap") %>% 
   addProviderTiles("Esri.WorldImagery", group = "Satellite") %>% 
-  
-  addPolygons(
-    data        = zones,
-    fillColor   = ~pal_zones(fcl_mdl),
-    fillOpacity = 0.6,
-    color       = "black",
-    weight      = 1,
-    popup       = ~paste0("<b>Zone: ", fcl_mdl, "</b>"),
-    group       = "Polygons"
-  )  %>% 
   
   addPolygons(
     data        = bounadry,
@@ -121,6 +230,27 @@ map <- leaflet()  %>%
     weight      = 2,
     group       = "Boundary"
   ) %>% 
+  
+  addPolygons(
+    data        = zones,
+    fillColor   = ~pal_zones(fcl_mdl),
+    fillOpacity = 0.6,
+    color       = "black",
+    weight      = 1,
+    popup       = ~paste0("<b>Zone: ", fcl_mdl, "</b>"),
+    group       = "Zone"
+  )  %>% 
+  
+  addPolygons(
+    data        = trial,
+    fillColor   = ~pal_strip(treat_desc),
+    fillOpacity = 0.6,
+    color       = "black",
+    weight      = 1,
+    popup       = ~paste0("<b>Treatments: ", treat_desc, "</b>"),
+    group       = "Strips"
+  )%>% 
+  
   addCircleMarkers(
     data        = sampling_pts,
     radius      = 5,
@@ -128,22 +258,28 @@ map <- leaflet()  %>%
     fillColor   = "darkred",
     fillOpacity = 0.8,
     weight      = 1,
-    popup       = ~paste0("<b>Min N profile: ", Min_N__kg_, "</b>"),  # replace YOUR_ID_FIELD
+    popup       = ~paste0("<b>Min N profile: ", `Min N. kg/ha`, "</b>"),   
     group       = "Sampling points"
   ) %>%
   
-   addLegend(
+  addLegend(
     position = "bottomright",
-    colors   = c("#404040", "#696969", "#F5F5DC"),
-    labels   = c("Zone 1", "Zone 2", "Zone 3"),
+    colors   = unname(palette_zone),
+    labels   = zone_details_details$`zone label names`, #assumes same order
     title    = "Zone",
-    opacity  = 0.6        # 
+    opacity  = 0.6
   )  %>% 
-  
+  addLegend(
+    position = "bottomright",
+    colors   = unname(palette_strip),
+    labels   = strips_details_details$`Treatment Name`,
+    title    = "Treatment",
+    opacity  = 0.6
+  ) %>%
   
   addLayersControl(
     baseGroups    = c("Light basemap", "Satellite"),
-    overlayGroups = c("Zone", "Boundary", "Sampling points"),
+    overlayGroups = c("Zone", "Strips", "Sampling points"),
     options       = layersControlOptions(collapsed = FALSE)
   )%>% 
   
@@ -151,19 +287,39 @@ map <- leaflet()  %>%
 
 map <- map %>%
   addControl(
+    html     = paste0('<div style="background:white; padding:6px 10px; border-radius:4px; font-size:14px; font-weight:bold;">',
+                      site_name, ' - ', sampling_timing, ' ', soil_test,
+                      '</div>'),
+    position = "topleft"
+  ) %>%
+  addControl(
     html     = summary_tbl_html,
-    position = "topright"
+    position = "bottomright"
+  ) %>%
+  addControl(
+    html     = paste0('<div style="background:white; padding:4px 8px; border-radius:4px; font-size:11px; color:#555;">',
+                      'Created: ', format(Sys.Date(), "%d %B %Y"),
+                      '. Sampling date: ', unique(sampling_pts$SamplingDate),
+                      '. Sampling depth: ', unique(sampling_pts$SampleDepth),
+                      '</div>'),
+    position = "bottomleft"
   )
 
 map
 
 # --- Save as standalone HTML ---
 
-# saveWidget(map, file = paste0(headDir, "/4.Sampling/1.Baseline/ACTUAL/WHA_BON_soilN_profile_Base.html")
-#            , selfcontained = TRUE)
+name_of_map <- paste0(site_name, "_", sampling_timing, "_", soil_test, "_.html")
+name_of_data <- paste0(site_name, "_", sampling_timing, "_", soil_test, "_.csv")
+save_location <- paste0(headDir, "/6.Soil_Data/Complied data/R_maps/")
+
+saveWidget(map,
+           file          = paste0(save_location, name_of_map),
+           selfcontained = TRUE,
+           libdir        = NULL)
+### save the results 
+sampling_pts
 
 
-saveWidget(map, file = paste0(headDir, "/4.Sampling/2.InSeason/26/Pre_season_Soil_Sampling/ACTUAL/WHA_Wood_soilN_profile_PreSeason.html")
-           , selfcontained = TRUE)
-
-
+st_drop_geometry(sampling_pts) %>%
+  write_csv(paste0(paste0(save_location, name_of_data)))
