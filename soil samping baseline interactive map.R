@@ -21,11 +21,15 @@ library(kableExtra)
 # site_number <- "4.Wharminda_Woodys"
 # site_name <- "Wharminda_Woodys"
 
-site_number <- "2.Crystal_Brook_Brians_House"
-site_name <- "Crystal_Brook_Brians_House"
+# site_number <- "2.Crystal_Brook_Brians_House"
+# site_name <- "Crystal_Brook_Brians_House"
 
 # site_number <- "8.Wynarka_Tanks"
 # site_name <- "Wynarka_Tanks"
+
+site_number <- "1.Walpeup_MRS125"
+site_name <- "Walpeup_MRS125"
+
 
 
 dir <- "//fs1-cbr.nexus.csiro.au/{af-sandysoils-ii}"
@@ -160,15 +164,22 @@ names(soil_results_plus_location_zone_strip)
 
 soil_results_plus_location_zone_strip <- soil_results_plus_location_zone_strip %>% 
   #rename(ID = pt_ID_Soil) %>% 
-  rename (zone = cluster) %>% 
-  dplyr::select(-POLY_AREA.y, -POLY_AREA.x, -plot, -treat_id,-treat,  -Temp, -rep)
+  #rename (zone = cluster) %>% 
+  rename (zone = gridcode) %>% 
+  dplyr::select(
+                #-POLY_AREA.y, -POLY_AREA.x, -plot, 
+                -treat_id,-treat#,  
+                #-Temp, -rep
+                )
   
 
 names(soil_results_plus_location_zone_strip)
 
 ## rename the zone clm 
 #zones <- zones %>%  dplyr::rename(zone = DN)
-zones <- zones %>%  dplyr::rename(zone = cluster)
+#zones <- zones %>%  dplyr::rename(zone = cluster)
+zones <- zones %>%  dplyr::rename(zone = gridcode )
+
 
 #################################################################################
 # --- Reproject to WGS84 (leaflet requires this) ---
