@@ -8,16 +8,25 @@ library(readxl)
 #install.packages("mapview")
 library(mapview)
 library(readr)
+library(kableExtra)
+
 
 ################################################################################
 ########################            Define the directory              ##########
 ################################################################################
 
-site_number <- "7.Wharminda_Bonanza"
-site_name <- "Wharminda_Bonanza"
+# site_number <- "7.Wharminda_Bonanza"
+# site_name <- "Wharminda_Bonanza"
 
 # site_number <- "4.Wharminda_Woodys"
 # site_name <- "Wharminda_Woodys"
+
+site_number <- "2.Crystal_Brook_Brians_House"
+site_name <- "Crystal_Brook_Brians_House"
+
+# site_number <- "8.Wynarka_Tanks"
+# site_name <- "Wynarka_Tanks"
+
 
 dir <- "//fs1-cbr.nexus.csiro.au/{af-sandysoils-ii}"
 headDir <- paste0(dir, "/work/Output-1/", site_number)
@@ -33,7 +42,7 @@ projetion_crs <- 7854 #GDA2020 / MGA Zone 54 (EPSG:7854).
 # --- Paths for shape files ---
 #################################################################################
 ## Note some samples are taken as a baseline other are pre season
-sampling_timing <- "Baseline" #"Pre_Season" # "Baseline"
+sampling_timing <- "Pre_Season" #"Pre_Season" # "Baseline"
 year_sampling <- 26
 soil_test <- "Mineral N profile"
 
@@ -114,16 +123,20 @@ names(soil_results)
 names(sampling_pts)
 #join sampling location to results
 soil_results_plus_location <- left_join(sampling_pts,soil_results,
-                                        join_by(field_1 == SampleNameShort ))
+                                        #join_by(field_1 == SampleNameShort ))
                                         #join_by(SampleNameShort == pt_ID_Soil))
+                                        join_by(id == SampleNameShort))
                                         #join_by(pt_ID_Soil == SampleNameShort ))
 str(soil_results_plus_location)
 ## Tidy up so that I am not using any predefined zones
 names(soil_results_plus_location)
 soil_results_plus_location <- soil_results_plus_location %>% 
-  dplyr::select("field_1",  "POINT_X" ,     "POINT_Y" ,
+#  dplyr::select("field_1",  "POINT_X" ,     "POINT_Y" ,
+#                "Min N. kg/ha" ,"SamplingDate", "SampleDepth" , "geometry") %>% 
+  dplyr::select("id",       
                 "Min N. kg/ha" ,"SamplingDate", "SampleDepth" , "geometry") %>% 
-  rename(ID = field_1)
+  rename(ID = id)
+  #rename(ID = field_1)
 
 #join zone type
 soil_results_plus_location_zone <-st_join(soil_results_plus_location, zones, 
@@ -134,19 +147,28 @@ soil_results_plus_location_zone_strip <-st_join(soil_results_plus_location_zone,
                                           join = st_within)  
 
 ### some site wont have treament yet if this happens
-soil_results_plus_location_zone_strip <- soil_results_plus_location_zone
+#soil_results_plus_location_zone_strip <- soil_results_plus_location_zone
 soil_results_plus_location_zone_strip
+names(soil_results_plus_location_zone_strip)
 ## rename some clms and tidy up
+
+# soil_results_plus_location_zone_strip <- soil_results_plus_location_zone_strip %>% 
+#   #rename(ID = pt_ID_Soil) %>% 
+#   rename (zone = DN) %>% 
+#   #dplyr::select(-POLY_AREA.y, -POLY_AREA.x, -plot, -treat_id,-treat, -rep,id)
+#   dplyr::select(-"fid")
 
 soil_results_plus_location_zone_strip <- soil_results_plus_location_zone_strip %>% 
   #rename(ID = pt_ID_Soil) %>% 
-  rename (zone = DN) %>% 
-  #dplyr::select(-POLY_AREA.y, -POLY_AREA.x, -plot, -treat_id,-treat, -rep,id)
-  dplyr::select(-"fid")
+  rename (zone = cluster) %>% 
+  dplyr::select(-POLY_AREA.y, -POLY_AREA.x, -plot, -treat_id,-treat,  -Temp, -rep)
+  
+
 names(soil_results_plus_location_zone_strip)
 
 ## rename the zone clm 
-zones <- zones %>%  dplyr::rename(zone = DN)
+#zones <- zones %>%  dplyr::rename(zone = DN)
+zones <- zones %>%  dplyr::rename(zone = cluster)
 
 #################################################################################
 # --- Reproject to WGS84 (leaflet requires this) ---
@@ -253,16 +275,16 @@ map <- leaflet()  %>%
     group       = "Zone"
   )  %>% 
   
-  # some sites dont have strips yet
-  # addPolygons(
-  #   data        = trial,
-  #   fillColor   = ~pal_strip(treat_desc),
-  #   fillOpacity = 0.6,
-  #   color       = "black",
-  #   weight      = 1,
-  #   popup       = ~paste0("<b>Treatments: ", treat_desc, "</b>"),
-  #   group       = "Strips"
-  # )%>% 
+  #some sites dont have strips yet
+  addPolygons(
+    data        = trial,
+    fillColor   = ~pal_strip(treat_desc),
+    fillOpacity = 0.6,
+    color       = "black",
+    weight      = 1,
+    popup       = ~paste0("<b>Treatments: ", treat_desc, "</b>"),
+    group       = "Strips"
+  )%>%
   
   addCircleMarkers(
     data        = sampling_pts,
@@ -283,23 +305,29 @@ map <- leaflet()  %>%
     opacity  = 0.6
   )  %>% 
   
-  # some sites dont have strips yet
-  # addLegend(
-  #   position = "bottomright",
-  #   colors   = unname(palette_strip),
-  #   labels   = strips_details_details$`Treatment Name`,
-  #   title    = "Treatment",
-  #   opacity  = 0.6
-  # ) %>%
+ # some sites dont have strips yet
+  addLegend(
+    position = "bottomright",
+    colors   = unname(palette_strip),
+    labels   = strips_details_details$`Treatment Name`,
+    title    = "Treatment",
+    opacity  = 0.6
+  ) %>%
   
   addLayersControl(
     baseGroups    = c("Light basemap", "Satellite"),
-    #overlayGroups = c("Zone", "Strips", "Sampling points"),
-    overlayGroups = c("Zone", "Sampling points"),
+    overlayGroups = c("Zone", "Strips", "Sampling points"),
+    #overlayGroups = c("Zone", "Sampling points"),
     options       = layersControlOptions(collapsed = FALSE)
   )%>% 
   
   addScaleBar(position = "bottomleft")
+
+sampling_pts_filter <- sampling_pts %>% 
+  dplyr::filter(!is.na(SamplingDate)) %>%
+  dplyr::mutate(SamplingDate = format(as.Date(SamplingDate), "%d %b %Y"))
+
+
 
 map <- map %>%
   addControl(
@@ -315,8 +343,8 @@ map <- map %>%
   addControl(
     html     = paste0('<div style="background:white; padding:4px 8px; border-radius:4px; font-size:11px; color:#555;">',
                       'Created: ', format(Sys.Date(), "%d %B %Y"),
-                      '. Sampling date: ', unique(sampling_pts$SamplingDate),
-                      '. Sampling depth: ', unique(sampling_pts$SampleDepth),
+                      '. Sampling date: ', unique(sampling_pts_filter$SamplingDate),
+                      '. Sampling depth: ', unique(sampling_pts_filter$SampleDepth),
                       '</div>'),
     position = "bottomleft"
   )
