@@ -13,10 +13,14 @@ library(tidyverse)
 
 
 # site_number <- "1.Walpeup_MRS125"
-# site_name   <- "Walpeup_MRS125"
+# site_name <- "Walpeup_MRS125"
 
-site_number <- "2.Crystal_Brook_Brians_House"
-site_name <- "Crystal_Brook_Brians_House"
+# site_number <- "2.Crystal_Brook_Brians_House"
+# site_name <- "Crystal_Brook_Brians_House"
+
+
+site_number <- "4.Wharminda_Woodys"
+site_name <- "Wharminda_Woodys"
 
 
 dir     <- "//fs1-cbr.nexus.csiro.au/{af-sandysoils-ii}"
@@ -29,6 +33,8 @@ compiled_folder <- "/Compiled_Data/"
 # file           <- "MRS125_2026_ presowing tests_2026-04-14.xlsx"
 #Brians_House
 file           <- "CRY_BHO_pH_EC_N_2026_reformat.csv"
+#Wood
+file           <- "Grdc-Sandy-Soils_WHA_WOD_min N_2026-04-08_reformat.csv"
 ################################################################################
 
 sampling_timing <- "Pre_Season" 
