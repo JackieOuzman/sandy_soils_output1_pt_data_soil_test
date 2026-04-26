@@ -14,6 +14,9 @@ library(kableExtra)
 ################################################################################
 ########################            Define the directory              ##########
 ################################################################################
+site_number <- "1.Walpeup_MRS125"
+site_name <- "Walpeup_MRS125"
+
 
 # site_number <- "7.Wharminda_Bonanza"
 # site_name <- "Wharminda_Bonanza"
@@ -27,8 +30,7 @@ library(kableExtra)
 # site_number <- "8.Wynarka_Tanks"
 # site_name <- "Wynarka_Tanks"
 
-site_number <- "1.Walpeup_MRS125"
-site_name <- "Walpeup_MRS125"
+
 
 
 
