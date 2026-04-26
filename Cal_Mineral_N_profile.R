@@ -1,4 +1,4 @@
-## Importing and fromatting APAL data
+## Importing and formatting APAL data
 
 library(dplyr)
 library(readr)
@@ -19,8 +19,11 @@ library(tidyverse)
 # site_name <- "Crystal_Brook_Brians_House"
 
 
-site_number <- "4.Wharminda_Woodys"
-site_name <- "Wharminda_Woodys"
+# site_number <- "4.Wharminda_Woodys"
+# site_name <- "Wharminda_Woodys"
+
+site_number <- "7.Wharminda_Bonanza"
+site_name <- "Wharminda_Bonanza"
 
 
 dir     <- "//fs1-cbr.nexus.csiro.au/{af-sandysoils-ii}"
@@ -32,7 +35,7 @@ compiled_folder <- "/Compiled_Data/"
 #Walpeup_MRS125
 # file           <- "MRS125_2026_ presowing tests_2026-04-14.xlsx"
 #Brians_House
-file           <- "CRY_BHO_pH_EC_N_2026_reformat.csv"
+#file           <- "CRY_BHO_pH_EC_N_2026_reformat.csv"
 #Wood
 file           <- "Grdc-Sandy-Soils_WHA_WOD_min N_2026-04-08_reformat.csv"
 ################################################################################
