@@ -12,8 +12,12 @@ library(tidyverse)
 
 
 
-site_number <- "1.Walpeup_MRS125"
-site_name   <- "Walpeup_MRS125"
+# site_number <- "1.Walpeup_MRS125"
+# site_name   <- "Walpeup_MRS125"
+
+site_number <- "2.Crystal_Brook_Brians_House"
+site_name <- "Crystal_Brook_Brians_House"
+
 
 dir     <- "//fs1-cbr.nexus.csiro.au/{af-sandysoils-ii}"
 headDir <- paste0(dir, "/work/Output-1/", site_number)
@@ -21,8 +25,10 @@ headDir <- paste0(dir, "/work/Output-1/", site_number)
 soils_folder <- "/6.Soil_Data"
 compiled_folder <- "/Compiled_Data/"
 
-file <- paste0("MRS125_2026_ presowing tests_2026-04-14_reformat.csv")
-
+#Walpeup_MRS125
+# file           <- "MRS125_2026_ presowing tests_2026-04-14.xlsx"
+#Brians_House
+file           <- "CRY_BHO_pH_EC_N_2026_reformat.csv"
 ################################################################################
 
 sampling_timing <- "Pre_Season" 

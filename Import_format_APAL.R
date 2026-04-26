@@ -12,8 +12,11 @@ library(tidyverse)
 
 
 
-site_number <- "1.Walpeup_MRS125"
-site_name <- "Walpeup_MRS125"
+# site_number <- "1.Walpeup_MRS125"
+# site_name <- "Walpeup_MRS125"
+
+site_number <- "2.Crystal_Brook_Brians_House"
+site_name <- "Crystal_Brook_Brians_House"
 
 dir <- "//fs1-cbr.nexus.csiro.au/{af-sandysoils-ii}"
 headDir <- paste0(dir, "/work/Output-1/", site_number)
@@ -21,9 +24,12 @@ headDir <- paste0(dir, "/work/Output-1/", site_number)
 soils_folder  <- "/6.Soil_Data"
 subfolder     <- "/4.26/RawData/"
 
-file           <- "MRS125_2026_ presowing tests_2026-04-14.xlsx"
-worksheet      <- "Data"
 
+#Walpeup_MRS125
+# file           <- "MRS125_2026_ presowing tests_2026-04-14.xlsx"
+#Brians_House
+file           <- "CRY_BHO_pH_EC_N_2026.xlsx"
+worksheet      <- "Data"
 
 ### import data ###########################################################
 
