@@ -14,18 +14,23 @@ library(kableExtra)
 ################################################################################
 ########################            Define the directory              ##########
 ################################################################################
-site_number <- "1.Walpeup_MRS125"
-site_name <- "Walpeup_MRS125"
-
-
-# site_number <- "7.Wharminda_Bonanza"
-# site_name <- "Wharminda_Bonanza"
-
-# site_number <- "4.Wharminda_Woodys"
-# site_name <- "Wharminda_Woodys"
+# site_number <- "1.Walpeup_MRS125"
+# site_name <- "Walpeup_MRS125"
+# site_name_display <- "Walpeup MRS125"
 
 # site_number <- "2.Crystal_Brook_Brians_House"
 # site_name <- "Crystal_Brook_Brians_House"
+# site_name_display <- "Crystal Brook Brians House"
+
+# site_number        <- "4.Wharminda_Woodys"
+# site_name          <- "Wharminda_Woodys"
+# site_name_display  <-  "Wharminda Woodys"
+
+site_number <- "7.Wharminda_Bonanza"
+site_name <- "Wharminda_Bonanza"
+site_name_display  <-  "Wharminda Bonanza"
+
+
 
 # site_number <- "8.Wynarka_Tanks"
 # site_name <- "Wynarka_Tanks"
@@ -48,7 +53,8 @@ projetion_crs <- 7854 #GDA2020 / MGA Zone 54 (EPSG:7854).
 # --- Paths for shape files ---
 #################################################################################
 ## Note some samples are taken as a baseline other are pre season
-sampling_timing <- "Pre_Season" #"Pre_Season" # "Baseline"
+#sampling_timing <- "Pre_Season" 
+sampling_timing <- "Baseline" #BON
 year_sampling <- 26
 soil_test <- "Mineral N profile"
 
@@ -87,26 +93,12 @@ Soil_test_results_source <- readxl::read_excel(
   filter(variable == paste0(sampling_timing, "_Soil_Sampling_MinN_profile_data_", year_sampling )) %>% 
   pull("file path")
 
-Soil_test_results_source_sheet <- readxl::read_excel(
-  paste0(metadata_path,metadata_file_name),
-  sheet = "Soil_sampling_files_location") %>%
-  filter(Site == site_number)  %>%
-  filter(variable == paste0(sampling_timing, "_Soil_Sampling_MinN_profile_data_", year_sampling )) %>% 
-  pull("other details")
 
 
 
 
 
 
-# 
-# zones_shapefile_source <- paste0(headDir, "/3.Covariates/6.Clusters_Zones/FINAL/Opt_Clusters_7854.shp")
-# boundary_shapefile_source <- paste0(headDir, "/1.Paddock_Boundary/Verran_1_boundary.shp")
-# sampling_pts_shapefile_source <- paste0(headDir, "/4.Sampling/1.Baseline/ACTUAL/WHA_BON_soil_profile_N_with_zones.shp")
-
-# zones_shapefile_source <- paste0(headDir, "/3.Covariates/6.Clusters_Zones/FINAL/WOD_4zones_syd_7854.shp")
-# boundary_shapefile_source <- paste0(headDir, "/1.Paddock_Boundary/Wharminda_Boundary_Masked_7854.shp")
-# sampling_pts_shapefile_source <- paste0(headDir, "/4.Sampling/2.InSeason/26/Pre_season_Soil_Sampling/ACTUAL/Centered/WHA_WOD_Pre_seas_soil_Actual_Cent_zone_SoilN.shp")
 
 
 
@@ -116,9 +108,9 @@ Soil_test_results_source_sheet <- readxl::read_excel(
 # --- Read for shapefiles ---
 zones <- st_read(paste0(headDir, zones_shapefile_source))
 bounadry    <- st_read(paste0(headDir,boundary_shapefile_source))
-trial    <- st_read(paste0(headDir,trial_shapefile_source))
+trial    <- st_read(paste0(headDir,trial_shapefile_source)) #BON no trial yet
 sampling_pts   <- st_read(paste0(headDir,sampling_pts_shapefile_source))
-soil_results   <- read_excel(paste0(headDir,Soil_test_results_source), sheet = Soil_test_results_source_sheet)
+soil_results   <- read_csv(paste0(headDir,Soil_test_results_source))
 #################################################################################
 
  
@@ -129,58 +121,61 @@ names(soil_results)
 names(sampling_pts)
 #join sampling location to results
 soil_results_plus_location <- left_join(sampling_pts,soil_results,
-                                        #join_by(field_1 == SampleNameShort ))
+                                        join_by(field_1 == SampleNameShort )) #BON
                                         #join_by(SampleNameShort == pt_ID_Soil))
-                                        join_by(id == SampleNameShort))
-                                        #join_by(pt_ID_Soil == SampleNameShort ))
-str(soil_results_plus_location)
+                                        #join_by(id == SampleNameShort)) 
+                                        #join_by(pt_ID_Soil == SampleNameShort )) ##WOD
+
 ## Tidy up so that I am not using any predefined zones
 names(soil_results_plus_location)
 soil_results_plus_location <- soil_results_plus_location %>% 
-#  dplyr::select("field_1",  "POINT_X" ,     "POINT_Y" ,
-#                "Min N. kg/ha" ,"SamplingDate", "SampleDepth" , "geometry") %>% 
-  dplyr::select("id",       
-                "Min N. kg/ha" ,"SamplingDate", "SampleDepth" , "geometry") %>% 
-  rename(ID = id)
-  #rename(ID = field_1)
+  dplyr::select(
+                #"id",  
+                #"pt_ID_Soil", ##WOD
+                "field_1", ##BON
+                "MinN_kg_ha" ,"SamplingDate", "ProfileDepth" , "geometry") %>% 
+  #rename(ID = id)
+  #rename(ID = pt_ID_Soil) ##WOD
+  rename(ID = field_1) ##BON
 
 #join zone type
 soil_results_plus_location_zone <-st_join(soil_results_plus_location, zones, 
                                           join = st_within)  
 
 #join trial / treatment strip 
-soil_results_plus_location_zone_strip <-st_join(soil_results_plus_location_zone, trial, 
+soil_results_plus_location_zone_strip <-st_join(soil_results_plus_location_zone, 
+                                                trial, 
                                           join = st_within)  
 
-### some site wont have treament yet if this happens
+### some site wont have treatment yet if this happens#BON has not got a trial yet
 #soil_results_plus_location_zone_strip <- soil_results_plus_location_zone
-soil_results_plus_location_zone_strip
+
 names(soil_results_plus_location_zone_strip)
 ## rename some clms and tidy up
 
-# soil_results_plus_location_zone_strip <- soil_results_plus_location_zone_strip %>% 
-#   #rename(ID = pt_ID_Soil) %>% 
-#   rename (zone = DN) %>% 
-#   #dplyr::select(-POLY_AREA.y, -POLY_AREA.x, -plot, -treat_id,-treat, -rep,id)
-#   dplyr::select(-"fid")
 
 soil_results_plus_location_zone_strip <- soil_results_plus_location_zone_strip %>% 
   #rename(ID = pt_ID_Soil) %>% 
   #rename (zone = cluster) %>% 
-  rename (zone = gridcode) %>% 
-  dplyr::select(
-                #-POLY_AREA.y, -POLY_AREA.x, -plot, 
-                -treat_id,-treat#,  
-                #-Temp, -rep
-                )
+  #rename (zone = fcl_mdl) %>%  ##WOD
+  rename (zone = DN) %>%  ##BON
+  #rename (zone = gridcode) %>% 
+  dplyr::select("ID",
+                "MinN_kg_ha",
+                "SamplingDate",
+                "ProfileDepth",
+                "zone",
+                "treat_desc",#BON has not got a trial yet
+                "geometry" )
   
 
 names(soil_results_plus_location_zone_strip)
 
 ## rename the zone clm 
-#zones <- zones %>%  dplyr::rename(zone = DN)
+zones <- zones %>%  dplyr::rename(zone = DN) #BON
 #zones <- zones %>%  dplyr::rename(zone = cluster)
-zones <- zones %>%  dplyr::rename(zone = gridcode )
+#zones <- zones %>%  dplyr::rename(zone = gridcode )
+#zones <- zones %>%  dplyr::rename(zone = fcl_mdl ) #WOD
 
 
 #################################################################################
@@ -193,14 +188,6 @@ zones         <- st_transform(zones, 4326)
 sampling_pts  <- st_transform(soil_results_plus_location_zone_strip, 4326)
 trial         <- st_transform(trial, 4326)
 
-## check
-# st_crs(zones)$epsg
-# st_crs(bounadry)$epsg
-# st_crs(sampling_pts)$epsg
-# st_is_valid(zones)
-# st_is_valid(bounadry)
-# zones    <- st_make_valid(zones)
-# bounadry <- st_make_valid(bounadry)
 
 #################################################################################
 #### summary of soil N by zones
@@ -212,7 +199,7 @@ summary_tbl <- sampling_pts %>%
   group_by(zone) %>%
   summarise(
     n         = n(),
-    mean_N    = round(mean(`Min N. kg/ha`, na.rm = TRUE), 2)  
+    mean_N    = round(mean(MinN_kg_ha, na.rm = TRUE), 2)  
   ) %>%
   arrange(zone)
 #Format it as an HTML table for the map
@@ -289,15 +276,15 @@ map <- leaflet()  %>%
   )  %>% 
   
   #some sites dont have strips yet
-  addPolygons(
-    data        = trial,
-    fillColor   = ~pal_strip(treat_desc),
-    fillOpacity = 0.6,
-    color       = "black",
-    weight      = 1,
-    popup       = ~paste0("<b>Treatments: ", treat_desc, "</b>"),
-    group       = "Strips"
-  )%>%
+  # addPolygons(
+  #   data        = trial,
+  #   fillColor   = ~pal_strip(treat_desc),
+  #   fillOpacity = 0.6,
+  #   color       = "black",
+  #   weight      = 1,
+  #   popup       = ~paste0("<b>Treatments: ", treat_desc, "</b>"),
+  #   group       = "Strips"
+  # )%>%
   
   addCircleMarkers(
     data        = sampling_pts,
@@ -306,7 +293,7 @@ map <- leaflet()  %>%
     fillColor   = "darkred",
     fillOpacity = 0.8,
     weight      = 1,
-    popup       = ~paste0("<b>Min N profile: ", `Min N. kg/ha`, "</b>"),   
+    popup       = ~paste0("<b>Min N profile: ", MinN_kg_ha, "</b>"),   
     group       = "Sampling points"
   ) %>%
   
@@ -318,14 +305,14 @@ map <- leaflet()  %>%
     opacity  = 0.6
   )  %>% 
   
- # some sites dont have strips yet
-  addLegend(
-    position = "bottomright",
-    colors   = unname(palette_strip),
-    labels   = strips_details_details$`Treatment Name`,
-    title    = "Treatment",
-    opacity  = 0.6
-  ) %>%
+ # # some sites dont have strips yet
+ #  addLegend(
+ #    position = "bottomright",
+ #    colors   = unname(palette_strip),
+ #    labels   = strips_details_details$`Treatment Name`,
+ #    title    = "Treatment",
+ #    opacity  = 0.6
+ #  ) %>%
   
   addLayersControl(
     baseGroups    = c("Light basemap", "Satellite"),
@@ -336,16 +323,20 @@ map <- leaflet()  %>%
   
   addScaleBar(position = "bottomleft")
 
+
+
+
 sampling_pts_filter <- sampling_pts %>% 
   dplyr::filter(!is.na(SamplingDate)) %>%
-  dplyr::mutate(SamplingDate = format(as.Date(SamplingDate), "%d %b %Y"))
+  dplyr::mutate(SamplingDate = format(as.Date(SamplingDate, "%d-%m-%Y"), "%d %B %Y"))
+
 
 
 
 map <- map %>%
   addControl(
     html     = paste0('<div style="background:white; padding:6px 10px; border-radius:4px; font-size:14px; font-weight:bold;">',
-                      site_name, ' - ', sampling_timing, ' ', soil_test,
+                      site_name_display, ' - ', sampling_timing, ' ', soil_test,
                       '</div>'),
     position = "topleft"
   ) %>%
@@ -357,7 +348,7 @@ map <- map %>%
     html     = paste0('<div style="background:white; padding:4px 8px; border-radius:4px; font-size:11px; color:#555;">',
                       'Created: ', format(Sys.Date(), "%d %B %Y"),
                       '. Sampling date: ', unique(sampling_pts_filter$SamplingDate),
-                      '. Sampling depth: ', unique(sampling_pts_filter$SampleDepth),
+                      '. Sampling depth: ', unique(sampling_pts_filter$ProfileDepth),
                       '</div>'),
     position = "bottomleft"
   )
@@ -368,7 +359,7 @@ map
 
 name_of_map <- paste0(site_name, "_", sampling_timing, "_", soil_test, "_.html")
 name_of_data <- paste0(site_name, "_", sampling_timing, "_", soil_test, "_.csv")
-save_location <- paste0(headDir, "/6.Soil_Data/Complied data/R_maps/")
+save_location <- paste0(headDir, "/6.Soil_Data/Compiled_Data/R_maps/")
 
 saveWidget(map,
            file          = paste0(save_location, name_of_map),
