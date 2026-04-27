@@ -22,8 +22,11 @@ library(tidyverse)
 # site_number <- "4.Wharminda_Woodys"
 # site_name <- "Wharminda_Woodys"
 
-site_number <- "7.Wharminda_Bonanza"
-site_name <- "Wharminda_Bonanza"
+# site_number <- "7.Wharminda_Bonanza"
+# site_name <- "Wharminda_Bonanza"
+
+site_number <- "8.Wynarka_Tanks"
+site_name <- "Wynarka_Tanks"
 
 
 dir <- "//fs1-cbr.nexus.csiro.au/{af-sandysoils-ii}"
@@ -40,7 +43,9 @@ subfolder     <- "/1.Baseline/RawData/"
 #Wood 
 #file           <- "Grdc-Sandy-Soils_WHA_WOD_min N_2026-04-08.xlsx"
 #BON
-file          <- "Batch_49475_2026_04_08.xlsx"
+#file          <- "Batch_49475_2026_04_08.xlsx"
+#TAN
+file          <- "Batch-49908-49912-49911-49909-Grdc-Sandy-Soils-Ii-Wynarka-Tan-Sba4-Sba1-Phec-Data-Only-Samples-In-Rows-2026-04-21.xlsx"
 
 worksheet      <- "Data"
 

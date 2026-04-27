@@ -26,14 +26,14 @@ library(kableExtra)
 # site_name          <- "Wharminda_Woodys"
 # site_name_display  <-  "Wharminda Woodys"
 
-site_number <- "7.Wharminda_Bonanza"
-site_name <- "Wharminda_Bonanza"
-site_name_display  <-  "Wharminda Bonanza"
+#site_number <- "7.Wharminda_Bonanza"
+# site_name <- "Wharminda_Bonanza"
+# site_name_display  <-  "Wharminda Bonanza"
 
+site_number <- "8.Wynarka_Tanks"
+site_name <- "Wynarka_Tanks"
+site_name_display  <-  "Wynarka Tanks Bonanza"
 
-
-# site_number <- "8.Wynarka_Tanks"
-# site_name <- "Wynarka_Tanks"
 
 
 
@@ -54,7 +54,7 @@ projetion_crs <- 7854 #GDA2020 / MGA Zone 54 (EPSG:7854).
 #################################################################################
 ## Note some samples are taken as a baseline other are pre season
 #sampling_timing <- "Pre_Season" 
-sampling_timing <- "Baseline" #BON
+sampling_timing <- "Baseline" #BON and TAN
 year_sampling <- 26
 soil_test <- "Mineral N profile"
 
@@ -108,17 +108,21 @@ Soil_test_results_source <- readxl::read_excel(
 # --- Read for shapefiles ---
 zones <- st_read(paste0(headDir, zones_shapefile_source))
 bounadry    <- st_read(paste0(headDir,boundary_shapefile_source))
-trial    <- st_read(paste0(headDir,trial_shapefile_source)) #BON no trial yet
+trial    <- st_read(paste0(headDir,trial_shapefile_source)) #BON and #TAN no trial yet
 sampling_pts   <- st_read(paste0(headDir,sampling_pts_shapefile_source))
 soil_results   <- read_csv(paste0(headDir,Soil_test_results_source))
 #################################################################################
+#Fix the sampling_pts names 
+sampling_pts <- sampling_pts %>%
+  mutate(field_1 = as.numeric(gsub("TAN", "", Sample)))
+str(sampling_pts)
 
- 
 #################################################################################
 ### Join the sampling pts to the soil test results
 #################################################################################
 names(soil_results)
 names(sampling_pts)
+
 #join sampling location to results
 soil_results_plus_location <- left_join(sampling_pts,soil_results,
                                         join_by(field_1 == SampleNameShort )) #BON
@@ -132,11 +136,11 @@ soil_results_plus_location <- soil_results_plus_location %>%
   dplyr::select(
                 #"id",  
                 #"pt_ID_Soil", ##WOD
-                "field_1", ##BON
+                "field_1", ##BON and TAN
                 "MinN_kg_ha" ,"SamplingDate", "ProfileDepth" , "geometry") %>% 
   #rename(ID = id)
   #rename(ID = pt_ID_Soil) ##WOD
-  rename(ID = field_1) ##BON
+  rename(ID = field_1) ##BON and Tank
 
 #join zone type
 soil_results_plus_location_zone <-st_join(soil_results_plus_location, zones, 

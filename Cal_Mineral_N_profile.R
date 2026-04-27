@@ -22,8 +22,11 @@ library(tidyverse)
 # site_number <- "4.Wharminda_Woodys"
 # site_name <- "Wharminda_Woodys"
 
-site_number <- "7.Wharminda_Bonanza"
-site_name <- "Wharminda_Bonanza"
+# site_number <- "7.Wharminda_Bonanza"
+# site_name <- "Wharminda_Bonanza"
+
+site_number <- "8.Wynarka_Tanks"
+site_name <- "Wynarka_Tanks"
 
 
 dir     <- "//fs1-cbr.nexus.csiro.au/{af-sandysoils-ii}"
@@ -37,7 +40,9 @@ compiled_folder <- "/Compiled_Data/"
 #Brians_House
 #file           <- "CRY_BHO_pH_EC_N_2026_reformat.csv"
 #Wood
-file           <- "Grdc-Sandy-Soils_WHA_WOD_min N_2026-04-08_reformat.csv"
+#file           <- "Grdc-Sandy-Soils_WHA_WOD_min N_2026-04-08_reformat.csv"
+#TAN
+file           <- "Batch-49908-49912-49911-49909-Grdc-Sandy-Soils-Ii-Wynarka-Tan-Sba4-Sba1-Phec-Data-Only-Samples-In-Rows-2026-04-21_reformat.csv"
 ################################################################################
 
 sampling_timing <- "Pre_Season" 
@@ -115,6 +120,8 @@ df_summary <- df %>%
 
 df_summary <- df_summary %>%
   select(-c(DepthUpper_min, DepthLower_max, Nitrate_kg_ha_sum, Ammonium_kg_ha_sum))
+
+df_summary <- df_summary %>% filter(!is.na(SampleNameShort) & SampleNameShort != "")
 
 ###############################################################################
 
