@@ -162,21 +162,21 @@ soil_results_plus_location_zone_strip <- soil_results_plus_location_zone_strip %
   #rename(ID = pt_ID_Soil) %>% 
   #rename (zone = cluster) %>% 
   #rename (zone = fcl_mdl) %>%  ##WOD
-  rename (zone = DN) %>%  ##BON
+  #rename (zone = DN) %>%  ##BON
   #rename (zone = gridcode) %>% 
   dplyr::select("ID",
                 "MinN_kg_ha",
                 "SamplingDate",
                 "ProfileDepth",
                 "zone",
-                "treat_desc",#BON has not got a trial yet
+                "treat_desc",#BON and TAN has not got a trial yet
                 "geometry" )
   
 
 names(soil_results_plus_location_zone_strip)
 
 ## rename the zone clm 
-zones <- zones %>%  dplyr::rename(zone = DN) #BON
+#zones <- zones %>%  dplyr::rename(zone = DN) #BON
 #zones <- zones %>%  dplyr::rename(zone = cluster)
 #zones <- zones %>%  dplyr::rename(zone = gridcode )
 #zones <- zones %>%  dplyr::rename(zone = fcl_mdl ) #WOD
