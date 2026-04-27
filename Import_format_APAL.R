@@ -25,16 +25,20 @@ library(tidyverse)
 # site_number <- "7.Wharminda_Bonanza"
 # site_name <- "Wharminda_Bonanza"
 
-site_number <- "8.Wynarka_Tanks"
-site_name <- "Wynarka_Tanks"
+#site_number <- "8.Wynarka_Tanks"
+#site_name <- "Wynarka_Tanks"
+
+
+site_number <-  "6.Crystal_Brook_Randals"
+site_name   <-  "Crystal_Brook_Randals"
 
 
 dir <- "//fs1-cbr.nexus.csiro.au/{af-sandysoils-ii}"
 headDir <- paste0(dir, "/work/Output-1/", site_number)
 
 soils_folder  <- "/6.Soil_Data"
-#subfolder     <- "/4.26/RawData/"
-subfolder     <- "/1.Baseline/RawData/"
+subfolder     <- "/4.26/RawData/"
+#subfolder     <- "/1.Baseline/RawData/"
 
 #Walpeup_MRS125
 # file           <- "MRS125_2026_ presowing tests_2026-04-14.xlsx"
@@ -45,7 +49,9 @@ subfolder     <- "/1.Baseline/RawData/"
 #BON
 #file          <- "Batch_49475_2026_04_08.xlsx"
 #TAN
-file          <- "Batch-49908-49912-49911-49909-Grdc-Sandy-Soils-Ii-Wynarka-Tan-Sba4-Sba1-Phec-Data-Only-Samples-In-Rows-2026-04-21.xlsx"
+#file          <- "Batch-49908-49912-49911-49909-Grdc-Sandy-Soils-Ii-Wynarka-Tan-Sba4-Sba1-Phec-Data-Only-Samples-In-Rows-2026-04-21.xlsx"
+#RAN
+file           <- "Batch-50000-49999-50001-50002-Grdc-Sandy-Soils-Ii-Crystal-Brook-Ran-Sba4-Sba1-Ds1-Data-Only-Samples-In-Rows-2026-04-27.xlsx"
 
 worksheet      <- "Data"
 

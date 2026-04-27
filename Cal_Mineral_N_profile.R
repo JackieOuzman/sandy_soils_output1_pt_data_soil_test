@@ -25,8 +25,12 @@ library(tidyverse)
 # site_number <- "7.Wharminda_Bonanza"
 # site_name <- "Wharminda_Bonanza"
 
-site_number <- "8.Wynarka_Tanks"
-site_name <- "Wynarka_Tanks"
+#site_number <- "8.Wynarka_Tanks"
+#site_name <- "Wynarka_Tanks"
+
+
+site_number <-  "6.Crystal_Brook_Randals"
+site_name   <-  "Crystal_Brook_Randals"
 
 
 dir     <- "//fs1-cbr.nexus.csiro.au/{af-sandysoils-ii}"
@@ -42,7 +46,11 @@ compiled_folder <- "/Compiled_Data/"
 #Wood
 #file           <- "Grdc-Sandy-Soils_WHA_WOD_min N_2026-04-08_reformat.csv"
 #TAN
-file           <- "Batch-49908-49912-49911-49909-Grdc-Sandy-Soils-Ii-Wynarka-Tan-Sba4-Sba1-Phec-Data-Only-Samples-In-Rows-2026-04-21_reformat.csv"
+#file           <- "Batch-49908-49912-49911-49909-Grdc-Sandy-Soils-Ii-Wynarka-Tan-Sba4-Sba1-Phec-Data-Only-Samples-In-Rows-2026-04-21_reformat.csv"
+#RAN
+file           <- "Batch-50000-49999-50001-50002-Grdc-Sandy-Soils-Ii-Crystal-Brook-Ran-Sba4-Sba1-Ds1-Data-Only-Samples-In-Rows-2026-04-27_reformat.csv"
+
+
 ################################################################################
 
 sampling_timing <- "Pre_Season" 

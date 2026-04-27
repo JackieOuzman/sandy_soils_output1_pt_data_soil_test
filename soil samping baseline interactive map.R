@@ -30,12 +30,13 @@ library(kableExtra)
 # site_name <- "Wharminda_Bonanza"
 # site_name_display  <-  "Wharminda Bonanza"
 
-site_number <- "8.Wynarka_Tanks"
-site_name <- "Wynarka_Tanks"
-site_name_display  <-  "Wynarka Tanks Bonanza"
+# site_number <- "8.Wynarka_Tanks"
+# site_name <- "Wynarka_Tanks"
+# site_name_display  <-  "Wynarka Tanks Bonanza"
 
-
-
+site_number <-  "6.Crystal_Brook_Randals"
+site_name   <-  "Crystal_Brook_Randals"
+site_name_display <- "Crystal Brook Randals"
 
 
 
@@ -53,8 +54,8 @@ projetion_crs <- 7854 #GDA2020 / MGA Zone 54 (EPSG:7854).
 # --- Paths for shape files ---
 #################################################################################
 ## Note some samples are taken as a baseline other are pre season
-#sampling_timing <- "Pre_Season" 
-sampling_timing <- "Baseline" #BON and TAN
+sampling_timing <- "Pre_Season" 
+#sampling_timing <- "Baseline" #BON and TAN
 year_sampling <- 26
 soil_test <- "Mineral N profile"
 
@@ -113,9 +114,9 @@ sampling_pts   <- st_read(paste0(headDir,sampling_pts_shapefile_source))
 soil_results   <- read_csv(paste0(headDir,Soil_test_results_source))
 #################################################################################
 #Fix the sampling_pts names 
-sampling_pts <- sampling_pts %>%
-  mutate(field_1 = as.numeric(gsub("TAN", "", Sample)))
-str(sampling_pts)
+# sampling_pts <- sampling_pts %>%
+#   mutate(field_1 = as.numeric(gsub("TAN", "", Sample)))
+# str(sampling_pts)
 
 #################################################################################
 ### Join the sampling pts to the soil test results
@@ -125,7 +126,8 @@ names(sampling_pts)
 
 #join sampling location to results
 soil_results_plus_location <- left_join(sampling_pts,soil_results,
-                                        join_by(field_1 == SampleNameShort )) #BON
+                                        #join_by(field_1 == SampleNameShort )) #BON
+                                        join_by(id == SampleNameShort )) #RAN
                                         #join_by(SampleNameShort == pt_ID_Soil))
                                         #join_by(id == SampleNameShort)) 
                                         #join_by(pt_ID_Soil == SampleNameShort )) ##WOD
@@ -134,13 +136,13 @@ soil_results_plus_location <- left_join(sampling_pts,soil_results,
 names(soil_results_plus_location)
 soil_results_plus_location <- soil_results_plus_location %>% 
   dplyr::select(
-                #"id",  
+                "id",#RAN  
                 #"pt_ID_Soil", ##WOD
-                "field_1", ##BON and TAN
+                #"field_1", ##BON and TAN
                 "MinN_kg_ha" ,"SamplingDate", "ProfileDepth" , "geometry") %>% 
-  #rename(ID = id)
+  rename(ID = id)#RAN
   #rename(ID = pt_ID_Soil) ##WOD
-  rename(ID = field_1) ##BON and Tank
+  #rename(ID = field_1) ##BON and Tank
 
 #join zone type
 soil_results_plus_location_zone <-st_join(soil_results_plus_location, zones, 
@@ -160,7 +162,7 @@ names(soil_results_plus_location_zone_strip)
 
 soil_results_plus_location_zone_strip <- soil_results_plus_location_zone_strip %>% 
   #rename(ID = pt_ID_Soil) %>% 
-  #rename (zone = cluster) %>% 
+  rename (zone = cluster) %>% #RAN
   #rename (zone = fcl_mdl) %>%  ##WOD
   #rename (zone = DN) %>%  ##BON
   #rename (zone = gridcode) %>% 
@@ -177,7 +179,7 @@ names(soil_results_plus_location_zone_strip)
 
 ## rename the zone clm 
 #zones <- zones %>%  dplyr::rename(zone = DN) #BON
-#zones <- zones %>%  dplyr::rename(zone = cluster)
+zones <- zones %>%  dplyr::rename(zone = cluster)#RAN
 #zones <- zones %>%  dplyr::rename(zone = gridcode )
 #zones <- zones %>%  dplyr::rename(zone = fcl_mdl ) #WOD
 
@@ -280,15 +282,15 @@ map <- leaflet()  %>%
   )  %>% 
   
   #some sites dont have strips yet
-  # addPolygons(
-  #   data        = trial,
-  #   fillColor   = ~pal_strip(treat_desc),
-  #   fillOpacity = 0.6,
-  #   color       = "black",
-  #   weight      = 1,
-  #   popup       = ~paste0("<b>Treatments: ", treat_desc, "</b>"),
-  #   group       = "Strips"
-  # )%>%
+  addPolygons(
+    data        = trial,
+    fillColor   = ~pal_strip(treat_desc),
+    fillOpacity = 0.6,
+    color       = "black",
+    weight      = 1,
+    popup       = ~paste0("<b>Treatments: ", treat_desc, "</b>"),
+    group       = "Strips"
+  )%>%
   
   addCircleMarkers(
     data        = sampling_pts,
@@ -310,13 +312,13 @@ map <- leaflet()  %>%
   )  %>% 
   
  # # some sites dont have strips yet
- #  addLegend(
- #    position = "bottomright",
- #    colors   = unname(palette_strip),
- #    labels   = strips_details_details$`Treatment Name`,
- #    title    = "Treatment",
- #    opacity  = 0.6
- #  ) %>%
+  addLegend(
+    position = "bottomright",
+    colors   = unname(palette_strip),
+    labels   = strips_details_details$`Treatment Name`,
+    title    = "Treatment",
+    opacity  = 0.6
+  ) %>%
   
   addLayersControl(
     baseGroups    = c("Light basemap", "Satellite"),
