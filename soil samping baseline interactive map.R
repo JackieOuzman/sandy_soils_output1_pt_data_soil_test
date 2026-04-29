@@ -22,21 +22,35 @@ library(kableExtra)
 # site_name <- "Crystal_Brook_Brians_House"
 # site_name_display <- "Crystal Brook Brians House"
 
+# site_number <- 
+# site_name <- 
+# site_name_display <- 
+
+
 # site_number        <- "4.Wharminda_Woodys"
 # site_name          <- "Wharminda_Woodys"
 # site_name_display  <-  "Wharminda Woodys"
 
-#site_number <- "7.Wharminda_Bonanza"
+
+# site_number <-  "5.Walpeup_Gums"
+# site_name   <-  "Walpeup_Gums"
+# site_name_display <- "Walpeup Gums"
+
+# site_number <-  "6.Crystal_Brook_Randals"
+# site_name   <-  "Crystal_Brook_Randals"
+# site_name_display <- "Crystal Brook Randals"
+
+
+### NEW SITES WITH NO TRIAL YET
+# site_number <- "7.Wharminda_Bonanza"
 # site_name <- "Wharminda_Bonanza"
 # site_name_display  <-  "Wharminda Bonanza"
 
-# site_number <- "8.Wynarka_Tanks"
-# site_name <- "Wynarka_Tanks"
-# site_name_display  <-  "Wynarka Tanks Bonanza"
+site_number <- "8.Wynarka_Tanks"
+site_name <- "Wynarka_Tanks"
+site_name_display  <-  "Wynarka Tanks"
 
-site_number <-  "6.Crystal_Brook_Randals"
-site_name   <-  "Crystal_Brook_Randals"
-site_name_display <- "Crystal Brook Randals"
+
 
 
 
@@ -54,8 +68,8 @@ projetion_crs <- 7854 #GDA2020 / MGA Zone 54 (EPSG:7854).
 # --- Paths for shape files ---
 #################################################################################
 ## Note some samples are taken as a baseline other are pre season
-sampling_timing <- "Pre_Season" 
-#sampling_timing <- "Baseline" #BON and TAN
+#sampling_timing <- "Pre_Season" 
+sampling_timing <- "Baseline" #BON and TAN
 year_sampling <- 26
 soil_test <- "Mineral N profile"
 
@@ -126,23 +140,36 @@ names(sampling_pts)
 
 #join sampling location to results
 soil_results_plus_location <- left_join(sampling_pts,soil_results,
-                                        #join_by(field_1 == SampleNameShort )) #BON
-                                        join_by(id == SampleNameShort )) #RAN
-                                        #join_by(SampleNameShort == pt_ID_Soil))
-                                        #join_by(id == SampleNameShort)) 
-                                        #join_by(pt_ID_Soil == SampleNameShort )) ##WOD
+                                        #join_by(id == SampleNameShort )) #1. MRS
+                                        #join_by(id == SampleNameShort )) #2. BH
+                                        #join_by(pt_ID_Soil == SampleNameShort )) #3. WOD
+                                        
+                                        #join_by(ID_new == SampleNameShort )) #5.GUM
+                                        #join_by(id == SampleNameShort )) #6.RAN
+                                        #join_by(field_1 == SampleNameShort )) #7.BON
+                                        join_by(field_1 == SampleNameShort )) #8.TAN
+                                        
+                                        
 
 ## Tidy up so that I am not using any predefined zones
 names(soil_results_plus_location)
 soil_results_plus_location <- soil_results_plus_location %>% 
   dplyr::select(
-                "id",#RAN  
-                #"pt_ID_Soil", ##WOD
-                #"field_1", ##BON and TAN
+                #"id",#1.MRS 
+                #"id",#2.BH
+                #"pt_ID_Soil", #3.WOD
+                
+                #"ID_new",#5.GUM
+                #"id",#6.RAN
+                "field_1", ##7.BON and #8.TAN
                 "MinN_kg_ha" ,"SamplingDate", "ProfileDepth" , "geometry") %>% 
-  rename(ID = id)#RAN
-  #rename(ID = pt_ID_Soil) ##WOD
-  #rename(ID = field_1) ##BON and Tank
+#rename(ID = id)#1.MRS
+#rename(ID = id)#2.BH
+#rename(ID = pt_ID_Soil) #3.WOD
+
+#rename(ID = ID_new)#5.GUM
+#rename(ID = id)#6.RAN  
+rename(ID = field_1) #7.BON and Tank
 
 #join zone type
 soil_results_plus_location_zone <-st_join(soil_results_plus_location, zones, 
@@ -161,11 +188,14 @@ names(soil_results_plus_location_zone_strip)
 
 
 soil_results_plus_location_zone_strip <- soil_results_plus_location_zone_strip %>% 
-  #rename(ID = pt_ID_Soil) %>% 
-  rename (zone = cluster) %>% #RAN
-  #rename (zone = fcl_mdl) %>%  ##WOD
-  #rename (zone = DN) %>%  ##BON
-  #rename (zone = gridcode) %>% 
+  #rename (zone = gridcode) %>% #1.MRS
+  #rename (zone = cluster) %>% #2.BH
+  #rename (zone = fcl_mdl) %>%  #3.WOD
+  #rename (zone = cluster3) %>% #5.GUM
+  #rename (zone = cluster) %>% #6.RAN
+  #rename (zone = DN) %>%  #7.BON
+  rename (zone = zone) %>%  #8.BON
+  
   dplyr::select("ID",
                 "MinN_kg_ha",
                 "SamplingDate",
@@ -178,10 +208,16 @@ soil_results_plus_location_zone_strip <- soil_results_plus_location_zone_strip %
 names(soil_results_plus_location_zone_strip)
 
 ## rename the zone clm 
-#zones <- zones %>%  dplyr::rename(zone = DN) #BON
-zones <- zones %>%  dplyr::rename(zone = cluster)#RAN
+#zones <- zones %>%  dplyr::rename(zone = gridcode) #1.MRS
+#zones <- zones %>%  dplyr::rename(zone = cluster) #2.BH
+#zones <- zones %>%  dplyr::rename(zone = fcl_mdl ) #3.WOD
+#zones <- zones %>%  dplyr::rename(zone = cluster3)#5.gum
+#zones <- zones %>%  dplyr::rename(zone = cluster)#6.RAN
+#zones <- zones %>%  dplyr::rename(zone = DN) #7.BON
+
+
 #zones <- zones %>%  dplyr::rename(zone = gridcode )
-#zones <- zones %>%  dplyr::rename(zone = fcl_mdl ) #WOD
+
 
 
 #################################################################################
@@ -190,7 +226,6 @@ zones <- zones %>%  dplyr::rename(zone = cluster)#RAN
 
 zones         <- st_transform(zones, 4326)
 bounadry      <- st_transform(bounadry, 4326)
-zones         <- st_transform(zones, 4326)
 sampling_pts  <- st_transform(soil_results_plus_location_zone_strip, 4326)
 trial         <- st_transform(trial, 4326)
 
@@ -258,6 +293,11 @@ pal_strip <- colorFactor(
 #################################################################################
 # --- Build the map ---
 #################################################################################
+sampling_pts_filter <- sampling_pts %>% 
+  dplyr::filter(!is.na(SamplingDate)) %>%
+  dplyr::mutate(SamplingDate = format(as.Date(SamplingDate, "%d-%m-%Y"), "%d %B %Y"))
+
+
 map <- leaflet()  %>% 
   
   addProviderTiles("CartoDB.Positron",  group = "Light basemap") %>% 
@@ -293,13 +333,13 @@ map <- leaflet()  %>%
   )%>%
   
   addCircleMarkers(
-    data        = sampling_pts,
+    data        = sampling_pts_filter,
     radius      = 5,
     color       = "darkred",
     fillColor   = "darkred",
     fillOpacity = 0.8,
     weight      = 1,
-    popup       = ~paste0("<b>Min N profile: ", MinN_kg_ha, "</b>"),   
+    popup       = ~paste0("<b>Sample ID: ", ID, "</b><br>Min N profile: ", MinN_kg_ha),   
     group       = "Sampling points"
   ) %>%
   
@@ -330,11 +370,6 @@ map <- leaflet()  %>%
   addScaleBar(position = "bottomleft")
 
 
-
-
-sampling_pts_filter <- sampling_pts %>% 
-  dplyr::filter(!is.na(SamplingDate)) %>%
-  dplyr::mutate(SamplingDate = format(as.Date(SamplingDate, "%d-%m-%Y"), "%d %B %Y"))
 
 
 
@@ -377,5 +412,12 @@ saveWidget(map,
 sampling_pts
 
 
-st_drop_geometry(sampling_pts) %>%
-  write_csv(paste0(paste0(save_location, name_of_data)))
+# st_drop_geometry(sampling_pts) %>%
+#   write_csv(paste0(paste0(save_location, name_of_data)))
+
+
+st_coordinates(sampling_pts) %>%
+  as.data.frame() %>%
+  bind_cols(st_drop_geometry(sampling_pts)) %>%
+  mutate(CRS = st_crs(sampling_pts)$input) %>%
+  write_csv(paste0(save_location, name_of_data))

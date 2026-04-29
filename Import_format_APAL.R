@@ -29,9 +29,12 @@ library(tidyverse)
 #site_name <- "Wynarka_Tanks"
 
 
-site_number <-  "6.Crystal_Brook_Randals"
-site_name   <-  "Crystal_Brook_Randals"
+# site_number <-  "6.Crystal_Brook_Randals"
+# site_name   <-  "Crystal_Brook_Randals"
 
+
+site_number <-  "5.Walpeup_Gums"
+site_name   <-  "Walpeup_Gums"
 
 dir <- "//fs1-cbr.nexus.csiro.au/{af-sandysoils-ii}"
 headDir <- paste0(dir, "/work/Output-1/", site_number)
@@ -51,7 +54,9 @@ subfolder     <- "/4.26/RawData/"
 #TAN
 #file          <- "Batch-49908-49912-49911-49909-Grdc-Sandy-Soils-Ii-Wynarka-Tan-Sba4-Sba1-Phec-Data-Only-Samples-In-Rows-2026-04-21.xlsx"
 #RAN
-file           <- "Batch-50000-49999-50001-50002-Grdc-Sandy-Soils-Ii-Crystal-Brook-Ran-Sba4-Sba1-Ds1-Data-Only-Samples-In-Rows-2026-04-27.xlsx"
+#file           <- "Batch-50000-49999-50001-50002-Grdc-Sandy-Soils-Ii-Crystal-Brook-Ran-Sba4-Sba1-Ds1-Data-Only-Samples-In-Rows-2026-04-27.xlsx"
+#GUM
+file           <- "WHA_GUM_Pre-sow soils-2026-04-14.xlsx"
 
 worksheet      <- "Data"
 
