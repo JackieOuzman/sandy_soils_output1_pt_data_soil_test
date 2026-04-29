@@ -14,9 +14,9 @@ library(kableExtra)
 ################################################################################
 ########################            Define the directory              ##########
 ################################################################################
-# site_number <- "1.Walpeup_MRS125"
-# site_name <- "Walpeup_MRS125"
-# site_name_display <- "Walpeup MRS125"
+site_number <- "1.Walpeup_MRS125"
+site_name <- "Walpeup_MRS125"
+site_name_display <- "Walpeup MRS125"
 
 # site_number <- "2.Crystal_Brook_Brians_House"
 # site_name <- "Crystal_Brook_Brians_House"
@@ -46,9 +46,9 @@ library(kableExtra)
 # site_name <- "Wharminda_Bonanza"
 # site_name_display  <-  "Wharminda Bonanza"
 
-site_number <- "8.Wynarka_Tanks"
-site_name <- "Wynarka_Tanks"
-site_name_display  <-  "Wynarka Tanks"
+# site_number <- "8.Wynarka_Tanks"
+# site_name <- "Wynarka_Tanks"
+# site_name_display  <-  "Wynarka Tanks"
 
 
 

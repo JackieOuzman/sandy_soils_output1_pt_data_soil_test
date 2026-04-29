@@ -1,4 +1,4 @@
-## Importing and fromatting APAL data
+## Importing and formatting APAL data
 
 library(dplyr)
 library(readr)
@@ -18,29 +18,33 @@ library(tidyverse)
 # site_number <- "2.Crystal_Brook_Brians_House"
 # site_name <- "Crystal_Brook_Brians_House"
 
-site_number <- "4.Wharminda_Woodys"
-site_name <- "Wharminda_Woodys"
+# site_number <- "4.Wharminda_Woodys"
+# site_name <- "Wharminda_Woodys"
 
-# site_number <- "7.Wharminda_Bonanza"
-# site_name <- "Wharminda_Bonanza"
-
-#site_number <- "8.Wynarka_Tanks"
-#site_name <- "Wynarka_Tanks"
-
+# site_number <-  "5.Walpeup_Gums"
+# site_name   <-  "Walpeup_Gums"
 
 # site_number <-  "6.Crystal_Brook_Randals"
 # site_name   <-  "Crystal_Brook_Randals"
 
 
-# site_number <-  "5.Walpeup_Gums"
-# site_name   <-  "Walpeup_Gums"
+## New Sites ###
+site_number <- "7.Wharminda_Bonanza"
+site_name <- "Wharminda_Bonanza"
+
+#site_number <- "8.Wynarka_Tanks"
+#site_name <- "Wynarka_Tanks"
+
+
+
+
 
 dir <- "//fs1-cbr.nexus.csiro.au/{af-sandysoils-ii}"
 headDir <- paste0(dir, "/work/Output-1/", site_number)
 
 soils_folder  <- "/6.Soil_Data"
-subfolder     <- "/4.26/RawData/"
-#subfolder     <- "/1.Baseline/RawData/"
+#subfolder     <- "/4.26/RawData/"
+subfolder     <- "/1.Baseline/RawData/"
 
 
 file <- case_when(
@@ -48,11 +52,12 @@ file <- case_when(
   site_number == "2.Crystal_Brook_Brians_House" ~ "CRY_BHO_pH_EC_N_2026.xlsx",
   site_number == "3.Wynarka_Mervs_West"         ~ "",
   #site_number == "4.Wharminda_Woodys"           ~ "Grdc-Sandy-Soils_WHA_WOD_min N_2026-04-08.xlsx",
-  site_number == "4.Wharminda_Woodys"           ~ "Grdc-Sandy-Soils_WHA_WOD_min N_2026-04-08.xlsx",### fix this one
+  site_number == "4.Wharminda_Woodys"           ~ "Batch-Grdc-Sandy-Soils-Ii-Client-Sba4-Sba1-Ds1-WAH_WOD-2026-04-10.xlsx",### this seems more complete
   
   site_number == "5.Walpeup_Gums"               ~ "WHA_GUM_Pre-sow soils-2026-04-14.xlsx",
   site_number == "6.Crystal_Brook_Randals"      ~ "Batch-50000-49999-50001-50002-Grdc-Sandy-Soils-Ii-Crystal-Brook-Ran-Sba4-Sba1-Ds1-Data-Only-Samples-In-Rows-2026-04-27.xlsx",
-  site_number == "7.Wharminda_Bonanza"          ~ "Batch_49475_2026_04_08.xlsx",
+  #site_number == "7.Wharminda_Bonanza"          ~ "Batch_49475_2026_04_08.xlsx",#this only has N
+  site_number == "7.Wharminda_Bonanza"          ~ "Grdc-Sandy-Soils-Ii-Client-Sba4-Sba1-Phec-WHA_BON_2026-04-10.xlsx",#this one has more
   site_number == "8.Wynarka_Tanks"              ~ "Batch-49908-49912-49911-49909-Grdc-Sandy-Soils-Ii-Wynarka-Tan-Sba4-Sba1-Phec-Data-Only-Samples-In-Rows-2026-04-21.xlsx",
   TRUE                                          ~ NA_character_
 )
