@@ -18,9 +18,8 @@ library(tidyverse)
 # site_number <- "2.Crystal_Brook_Brians_House"
 # site_name <- "Crystal_Brook_Brians_House"
 
-
-# site_number <- "4.Wharminda_Woodys"
-# site_name <- "Wharminda_Woodys"
+site_number <- "4.Wharminda_Woodys"
+site_name <- "Wharminda_Woodys"
 
 # site_number <- "7.Wharminda_Bonanza"
 # site_name <- "Wharminda_Bonanza"
@@ -33,8 +32,8 @@ library(tidyverse)
 # site_name   <-  "Crystal_Brook_Randals"
 
 
-site_number <-  "5.Walpeup_Gums"
-site_name   <-  "Walpeup_Gums"
+# site_number <-  "5.Walpeup_Gums"
+# site_name   <-  "Walpeup_Gums"
 
 dir <- "//fs1-cbr.nexus.csiro.au/{af-sandysoils-ii}"
 headDir <- paste0(dir, "/work/Output-1/", site_number)
@@ -43,20 +42,24 @@ soils_folder  <- "/6.Soil_Data"
 subfolder     <- "/4.26/RawData/"
 #subfolder     <- "/1.Baseline/RawData/"
 
-#Walpeup_MRS125
-# file           <- "MRS125_2026_ presowing tests_2026-04-14.xlsx"
-#Brians_House
-#file           <- "CRY_BHO_pH_EC_N_2026.xlsx"
-#Wood 
-#file           <- "Grdc-Sandy-Soils_WHA_WOD_min N_2026-04-08.xlsx"
-#BON
-#file          <- "Batch_49475_2026_04_08.xlsx"
-#TAN
-#file          <- "Batch-49908-49912-49911-49909-Grdc-Sandy-Soils-Ii-Wynarka-Tan-Sba4-Sba1-Phec-Data-Only-Samples-In-Rows-2026-04-21.xlsx"
-#RAN
-#file           <- "Batch-50000-49999-50001-50002-Grdc-Sandy-Soils-Ii-Crystal-Brook-Ran-Sba4-Sba1-Ds1-Data-Only-Samples-In-Rows-2026-04-27.xlsx"
-#GUM
-file           <- "WHA_GUM_Pre-sow soils-2026-04-14.xlsx"
+
+file <- case_when(
+  site_number == "1.Walpeup_MRS125"             ~ "MRS125_2026_ presowing tests_2026-04-14.xlsx", #N and water
+  site_number == "2.Crystal_Brook_Brians_House" ~ "CRY_BHO_pH_EC_N_2026.xlsx",
+  site_number == "3.Wynarka_Mervs_West"         ~ "",
+  #site_number == "4.Wharminda_Woodys"           ~ "Grdc-Sandy-Soils_WHA_WOD_min N_2026-04-08.xlsx",
+  site_number == "4.Wharminda_Woodys"           ~ "Grdc-Sandy-Soils_WHA_WOD_min N_2026-04-08.xlsx",### fix this one
+  
+  site_number == "5.Walpeup_Gums"               ~ "WHA_GUM_Pre-sow soils-2026-04-14.xlsx",
+  site_number == "6.Crystal_Brook_Randals"      ~ "Batch-50000-49999-50001-50002-Grdc-Sandy-Soils-Ii-Crystal-Brook-Ran-Sba4-Sba1-Ds1-Data-Only-Samples-In-Rows-2026-04-27.xlsx",
+  site_number == "7.Wharminda_Bonanza"          ~ "Batch_49475_2026_04_08.xlsx",
+  site_number == "8.Wynarka_Tanks"              ~ "Batch-49908-49912-49911-49909-Grdc-Sandy-Soils-Ii-Wynarka-Tan-Sba4-Sba1-Phec-Data-Only-Samples-In-Rows-2026-04-21.xlsx",
+  TRUE                                          ~ NA_character_
+)
+
+if (is.na(file)) stop(paste("Unknown site_number:", site_number))
+
+
 
 worksheet      <- "Data"
 
