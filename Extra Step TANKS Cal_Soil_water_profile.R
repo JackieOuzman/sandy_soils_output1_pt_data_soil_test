@@ -1,4 +1,3 @@
-## Importing and formatting APAL data
 
 library(dplyr)
 library(readr)
@@ -12,29 +11,11 @@ library(tidyverse)
 
 
 
-# site_number <- "1.Walpeup_MRS125"
-# site_name <- "Walpeup_MRS125"
 
-# site_number <- "2.Crystal_Brook_Brians_House"
-# site_name <- "Crystal_Brook_Brians_House"
 
-# site_number <- "4.Wharminda_Woodys"
-# site_name <- "Wharminda_Woodys"
-
-# site_number <-  "5.Walpeup_Gums"
-# site_name   <-  "Walpeup_Gums"
-
-# site_number <-  "6.Crystal_Brook_Randals"
-# site_name   <-  "Crystal_Brook_Randals"
-
-#### NEW Sites ######
-
-site_number <- "7.Wharminda_Bonanza"
-site_name <- "Wharminda_Bonanza"
-
-### this site has two sets of analysis results use Extra step script for this one
-# site_number <- "8.Wynarka_Tanks"
-# site_name <- "Wynarka_Tanks"
+### this site has two sets of analysis results
+site_number <- "8.Wynarka_Tanks"
+site_name <- "Wynarka_Tanks"
 
 
 
@@ -70,16 +51,61 @@ year_sampling <- 26
 soil_test <- "Soil water profile"
 
 
-### import data ###########################################################
+### import data data set 1 ###########################################################
 
-df <- read.csv(paste0(headDir, soils_folder, compiled_folder, file))
+df1 <- read.csv(paste0(headDir, soils_folder, compiled_folder, file))
 
-names(df)
+### import data data set 1 ###########################################################
 
+
+
+df_2 <- read_excel(path = paste0(headDir, "/6.Soil_Data/1.Baseline/RawData/WYN_TAN_baseline_soils_GM.xlsx"))
+str(df_2)
+df2_edited <- df_2 %>%
+  mutate(
+    Site = paste(Site, Paddock, sep = "_"),
+          SamplingDate = paste(
+          sprintf("%02d", as.integer(gsub("D", "", Day))),
+          sprintf("%02d", as.integer(gsub("M", "", Month))),
+          paste0("20", gsub("YR", "", Year)),
+          sep = "-"
+        )
+        ) %>%
+  rename(
+    SampleNameShort = `Plot/Sampling point`,
+    SampleDepth = Depth,
+    TMs.002B1_Gravimetric.moisture..as.received._..of.dry.wt2 = `GSM (%)`
+
+  )
+df2_edited <- df2_edited %>% select(Site,
+                                SampleNameShort,
+                                SamplingDate,
+                                SampleDepth,
+                                TMs.002B1_Gravimetric.moisture..as.received._..of.dry.wt2)
+                                
+
+
+####df2_edited has all the depths I want this to be the base
+
+df2_edited <- left_join(df2_edited, df1)
+df2_edited <- df2_edited %>%
+  relocate(TMs.002B1_Gravimetric.moisture..as.received._..of.dry.wt2,
+           .after = TMs.002B1_Gravimetric.moisture..as.received._..of.dry.wt)
+
+df2_edited <- df2_edited %>%
+  mutate(
+    TMs.002B1_Gravimetric.moisture..as.received._..of.dry.wt = coalesce(
+      TMs.002B1_Gravimetric.moisture..as.received._..of.dry.wt,
+      TMs.002B1_Gravimetric.moisture..as.received._..of.dry.wt2
+    )
+  )
+
+df2_edited <- df2_edited %>% select(- TMs.002B1_Gravimetric.moisture..as.received._..of.dry.wt2)
+  
+df <- df2_edited
 ## replace less than values ###########################################################
 df <- df %>%
   mutate(across(contains("TMs"), ~ ifelse(str_detect(as.character(.), "^<"), 0, .)))
-
 
 
 ## add a clm for profile depth - 
@@ -89,6 +115,7 @@ df <- df %>%
 
 df <- df %>%
   filter(!is.na(TMs.002B1_Gravimetric.moisture..as.received._..of.dry.wt))
+
 
 df <- df %>%
   mutate(
@@ -116,7 +143,7 @@ Gravimetric_moist_dry_col <- names(df)[str_detect(names(df), "Gravimetric.moistu
 df <- df %>%
   mutate(
     Soil_water_mm = as.numeric(.data[[Gravimetric_moist_dry_col]]) /100* bulk_density * DepthCm * 10)
-  
+
 
 
 
