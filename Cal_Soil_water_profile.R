@@ -18,6 +18,10 @@ library(tidyverse)
 # site_number <- "2.Crystal_Brook_Brians_House"
 # site_name <- "Crystal_Brook_Brians_House"
 
+site_number <- "3.Wynarka_Mervs_West"
+site_name <- "Wynarka_Mervs_West"
+
+
 # site_number <- "4.Wharminda_Woodys"
 # site_name <- "Wharminda_Woodys"
 
@@ -29,8 +33,8 @@ library(tidyverse)
 
 #### NEW Sites ######
 
-site_number <- "7.Wharminda_Bonanza"
-site_name <- "Wharminda_Bonanza"
+# site_number <- "7.Wharminda_Bonanza"
+# site_name <- "Wharminda_Bonanza"
 
 ### this site has two sets of analysis results use Extra step script for this one
 # site_number <- "8.Wynarka_Tanks"
@@ -52,7 +56,7 @@ compiled_folder <- "/Compiled_Data/"
 file <- case_when(
   site_number == "1.Walpeup_MRS125"             ~ "MRS125_2026_ presowing tests_2026-04-14_reformat.csv",
   site_number == "2.Crystal_Brook_Brians_House" ~ "CRY_BHO_pH_EC_N_2026_reformat.csv",
-  site_number == "3.Wynarka_Mervs_West"         ~ "",
+  site_number == "3.Wynarka_Mervs_West"         ~ "Batch-49912-49911-49913-49914-Grdc-Sandy-Soils-Ii-Wynarka-Mer-Sba4-Sba1-Ds1-Data-Only-Samples-In-Rows-2026-04-21_reformat.csv",
   site_number == "4.Wharminda_Woodys"           ~ "Batch-Grdc-Sandy-Soils-Ii-Client-Sba4-Sba1-Ds1-WAH_WOD-2026-04-10_reformat.csv",
   site_number == "5.Walpeup_Gums"               ~ "WHA_GUM_Pre-sow soils-2026-04-14_reformat.csv",
   site_number == "6.Crystal_Brook_Randals"      ~ "Batch-50000-49999-50001-50002-Grdc-Sandy-Soils-Ii-Crystal-Brook-Ran-Sba4-Sba1-Ds1-Data-Only-Samples-In-Rows-2026-04-27_reformat.csv",

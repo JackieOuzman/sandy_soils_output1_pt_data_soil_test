@@ -18,6 +18,8 @@ library(tidyverse)
 # site_number <- "2.Crystal_Brook_Brians_House"
 # site_name <- "Crystal_Brook_Brians_House"
 
+site_number <- "3.Wynarka_Mervs_West"
+site_name <- "Wynarka_Mervs_West"
 
 # site_number <- "4.Wharminda_Woodys"
 # site_name <- "Wharminda_Woodys"
@@ -33,8 +35,8 @@ library(tidyverse)
 # site_name   <-  "Crystal_Brook_Randals"
 
 
-site_number <-  "5.Walpeup_Gums"
-site_name   <-  "Walpeup_Gums"
+# site_number <-  "5.Walpeup_Gums"
+# site_name   <-  "Walpeup_Gums"
 
 
 dir     <- "//fs1-cbr.nexus.csiro.au/{af-sandysoils-ii}"
@@ -43,18 +45,33 @@ headDir <- paste0(dir, "/work/Output-1/", site_number)
 soils_folder <- "/6.Soil_Data"
 compiled_folder <- "/Compiled_Data/"
 
-#Walpeup_MRS125
-# file           <- "MRS125_2026_ presowing tests_2026-04-14.xlsx"
-#Brians_House
-#file           <- "CRY_BHO_pH_EC_N_2026_reformat.csv"
-#Wood
-#file           <- "Grdc-Sandy-Soils_WHA_WOD_min N_2026-04-08_reformat.csv"
-#TAN
-#file           <- "Batch-49908-49912-49911-49909-Grdc-Sandy-Soils-Ii-Wynarka-Tan-Sba4-Sba1-Phec-Data-Only-Samples-In-Rows-2026-04-21_reformat.csv"
-#RAN
-#file           <- "Batch-50000-49999-50001-50002-Grdc-Sandy-Soils-Ii-Crystal-Brook-Ran-Sba4-Sba1-Ds1-Data-Only-Samples-In-Rows-2026-04-27_reformat.csv"
-#Gum
-file           <- "WHA_GUM_Pre-sow soils-2026-04-14_reformat.csv"
+
+file <- case_when(
+  site_number == "1.Walpeup_MRS125"             ~ "MRS125_2026_ presowing tests_2026-04-14_reformat.csv",
+  site_number == "2.Crystal_Brook_Brians_House" ~ "CRY_BHO_pH_EC_N_2026_reformat.csv",
+  site_number == "3.Wynarka_Mervs_West"         ~ "Batch-49912-49911-49913-49914-Grdc-Sandy-Soils-Ii-Wynarka-Mer-Sba4-Sba1-Ds1-Data-Only-Samples-In-Rows-2026-04-21_reformat.csv",
+  site_number == "4.Wharminda_Woodys"           ~ "Batch-Grdc-Sandy-Soils-Ii-Client-Sba4-Sba1-Ds1-WAH_WOD-2026-04-10_reformat.csv",
+  site_number == "5.Walpeup_Gums"               ~ "WHA_GUM_Pre-sow soils-2026-04-14_reformat.csv",
+  site_number == "6.Crystal_Brook_Randals"      ~ "Batch-50000-49999-50001-50002-Grdc-Sandy-Soils-Ii-Crystal-Brook-Ran-Sba4-Sba1-Ds1-Data-Only-Samples-In-Rows-2026-04-27_reformat.csv",
+  site_number == "7.Wharminda_Bonanza"          ~ "Grdc-Sandy-Soils-Ii-Client-Sba4-Sba1-Phec-WHA_BON_2026-04-10_reformat.csv",
+  site_number == "8.Wynarka_Tanks"              ~ "Batch-49908-49912-49911-49909-Grdc-Sandy-Soils-Ii-Wynarka-Tan-Sba4-Sba1-Phec-Data-Only-Samples-In-Rows-2026-04-21_reformat.csv",
+  TRUE                                          ~ NA_character_
+)
+
+if (is.na(file)) stop(paste("Unknown site_number:", site_number))
+
+# #Walpeup_MRS125
+# # file           <- "MRS125_2026_ presowing tests_2026-04-14.xlsx"
+# #Brians_House
+# #file           <- "CRY_BHO_pH_EC_N_2026_reformat.csv"
+# #Wood
+# #file           <- "Grdc-Sandy-Soils_WHA_WOD_min N_2026-04-08_reformat.csv"
+# #TAN
+# #file           <- "Batch-49908-49912-49911-49909-Grdc-Sandy-Soils-Ii-Wynarka-Tan-Sba4-Sba1-Phec-Data-Only-Samples-In-Rows-2026-04-21_reformat.csv"
+# #RAN
+# #file           <- "Batch-50000-49999-50001-50002-Grdc-Sandy-Soils-Ii-Crystal-Brook-Ran-Sba4-Sba1-Ds1-Data-Only-Samples-In-Rows-2026-04-27_reformat.csv"
+# #Gum
+# file           <- "WHA_GUM_Pre-sow soils-2026-04-14_reformat.csv"
 ################################################################################
 
 sampling_timing <- "Pre_Season" 
