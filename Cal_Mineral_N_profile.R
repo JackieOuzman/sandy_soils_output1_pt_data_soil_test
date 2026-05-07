@@ -91,6 +91,9 @@ df <- df %>%
 
 
 ## add a clm for profile depth
+#careful here am I reporting the depth that is recorded in the datasheet or the depth we have results for
+df <- df %>%
+  filter(!is.na(TMs.007NO3_Nitrate...N..2M.KCl._mg.kg))
 
 df <- df %>%
   mutate(
@@ -124,8 +127,11 @@ df <- df %>%
   mutate(
     Ammonium_kg_ha = as.numeric(.data[[ammonium_col]]) * bulk_density * (DepthCm / 10)
   )
-
-
+names(df)
+Check <- df %>% select(Site:DepthCm, Nitrate_kg_ha, Ammonium_kg_ha , 
+                       TMs.007NO3_Nitrate...N..2M.KCl._mg.kg,
+                       TMs.007NH4_Ammonium...N..2M.KCl._mg.kg)
+##what the go with the zero values?All checkes out.. if it was coded <1 it became a zero
 ################################################################################
 ### Summary data #############################################################
 

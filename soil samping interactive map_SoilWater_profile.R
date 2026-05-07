@@ -22,9 +22,10 @@ library(kableExtra)
 # site_name <- "Crystal_Brook_Brians_House"
 # site_name_display <- "Crystal Brook Brians House"
 
-# site_number <- 
-# site_name <- 
-# site_name_display <- 
+site_number <- "3.Wynarka_Mervs_West"
+site_name <- "Wynarka_Mervs_West"
+site_name_display <- "Wynarka Mervs West"
+
 
 
 # site_number        <- "4.Wharminda_Woodys"
@@ -36,9 +37,9 @@ library(kableExtra)
 # site_name   <-  "Walpeup_Gums"
 # site_name_display <- "Walpeup Gums"
 
-site_number <-  "6.Crystal_Brook_Randals"
-site_name   <-  "Crystal_Brook_Randals"
-site_name_display <- "Crystal Brook Randals"
+# site_number <-  "6.Crystal_Brook_Randals"
+# site_name   <-  "Crystal_Brook_Randals"
+# site_name_display <- "Crystal Brook Randals"
 
 
 ### NEW SITES WITH NO TRIAL YET
@@ -143,7 +144,7 @@ names(sampling_pts)
 join_col <- case_when(
   site_number == "1.Walpeup_MRS125"            ~ "id",
   site_number == "2.Crystal_Brook_Brians_House" ~ "id",
-  site_number == "3.Wynarka_Mervs_West"         ~ "NA",# not specified - update
+  site_number == "3.Wynarka_Mervs_West"         ~ "id",# not specified - update
   site_number == "4.Wharminda_Woodys"           ~ "pt_ID_Soil",  
   site_number == "5.Walpeup_Gums"              ~ "ID_new",
   site_number == "6.Crystal_Brook_Randals"      ~ "id",
@@ -168,7 +169,7 @@ names(soil_results_plus_location)
 id_col <- case_when(
   site_number == "1.Walpeup_MRS125"            ~ "id",
   site_number == "2.Crystal_Brook_Brians_House" ~ "id",
-  site_number == "3.Wynarka_Mervs_West"         ~ "NA",# not specified - update
+  site_number == "3.Wynarka_Mervs_West"         ~ "id",# not specified - update
   site_number == "4.Wharminda_Woodys"           ~ "pt_ID_Soil",  
   site_number == "5.Walpeup_Gums"              ~ "ID_new",
   site_number == "6.Crystal_Brook_Randals"      ~ "id",
@@ -204,7 +205,7 @@ names(soil_results_plus_location_zone_strip)
 zone_col <- case_when(
   site_number == "1.Walpeup_MRS125"             ~ "gridcode",
   site_number == "2.Crystal_Brook_Brians_House"  ~ "cluster",
-  site_number == "3.Wynarka_Mervs_West"          ~ "NA", # update when known
+  site_number == "3.Wynarka_Mervs_West"          ~ "fcl_mdl", # update when known
   site_number == "4.Wharminda_Woodys"            ~ "fcl_mdl", 
   site_number == "5.Walpeup_Gums"               ~ "cluster3",
   site_number == "6.Crystal_Brook_Randals"       ~ "cluster",

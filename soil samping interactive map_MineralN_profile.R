@@ -14,17 +14,18 @@ library(kableExtra)
 ################################################################################
 ########################            Define the directory              ##########
 ################################################################################
-site_number <- "1.Walpeup_MRS125"
-site_name <- "Walpeup_MRS125"
-site_name_display <- "Walpeup MRS125"
+# site_number <- "1.Walpeup_MRS125"
+# site_name <- "Walpeup_MRS125"
+# site_name_display <- "Walpeup MRS125"
 
 # site_number <- "2.Crystal_Brook_Brians_House"
 # site_name <- "Crystal_Brook_Brians_House"
 # site_name_display <- "Crystal Brook Brians House"
 
-# site_number <- 
-# site_name <- 
-# site_name_display <- 
+
+site_number <- "3.Wynarka_Mervs_West"
+site_name <- "Wynarka_Mervs_West"
+site_name_display <- "Wynarka Mervs West"
 
 
 # site_number        <- "4.Wharminda_Woodys"
@@ -68,8 +69,8 @@ projetion_crs <- 7854 #GDA2020 / MGA Zone 54 (EPSG:7854).
 # --- Paths for shape files ---
 #################################################################################
 ## Note some samples are taken as a baseline other are pre season
-#sampling_timing <- "Pre_Season" 
-sampling_timing <- "Baseline" #BON and TAN
+sampling_timing <- "Pre_Season" 
+#sampling_timing <- "Baseline" #BON and TAN
 year_sampling <- 26
 soil_test <- "Mineral N profile"
 
@@ -139,37 +140,51 @@ names(soil_results)
 names(sampling_pts)
 
 #join sampling location to results
-soil_results_plus_location <- left_join(sampling_pts,soil_results,
-                                        #join_by(id == SampleNameShort )) #1. MRS
-                                        #join_by(id == SampleNameShort )) #2. BH
-                                        #join_by(pt_ID_Soil == SampleNameShort )) #3. WOD
-                                        
-                                        #join_by(ID_new == SampleNameShort )) #5.GUM
-                                        #join_by(id == SampleNameShort )) #6.RAN
-                                        #join_by(field_1 == SampleNameShort )) #7.BON
-                                        join_by(field_1 == SampleNameShort )) #8.TAN
-                                        
-                                        
+
+
+join_col <- case_when(
+  site_number == "1.Walpeup_MRS125"            ~ "id",
+  site_number == "2.Crystal_Brook_Brians_House" ~ "id",
+  site_number == "3.Wynarka_Mervs_West"         ~ "id",
+  site_number == "4.Wharminda_Woodys"           ~ "pt_ID_Soil",  
+  site_number == "5.Walpeup_Gums"              ~ "ID_new",
+  site_number == "6.Crystal_Brook_Randals"      ~ "id",
+  site_number == "7.Wharminda_Bonanza"          ~ "field_1",
+  site_number == "8.Wynarka_Tanks"              ~ "field_1",
+  TRUE ~ NA_character_
+)
+if (is.na(join_col)) stop(paste("Join column not defined for site_number:", site_number))
+
+soil_results_plus_location <- left_join(
+  sampling_pts,
+  soil_results,
+  join_by(!!sym(join_col) == SampleNameShort)
+)
+
 
 ## Tidy up so that I am not using any predefined zones
 names(soil_results_plus_location)
-soil_results_plus_location <- soil_results_plus_location %>% 
-  dplyr::select(
-                #"id",#1.MRS 
-                #"id",#2.BH
-                #"pt_ID_Soil", #3.WOD
-                
-                #"ID_new",#5.GUM
-                #"id",#6.RAN
-                "field_1", ##7.BON and #8.TAN
-                "MinN_kg_ha" ,"SamplingDate", "ProfileDepth" , "geometry") %>% 
-#rename(ID = id)#1.MRS
-#rename(ID = id)#2.BH
-#rename(ID = pt_ID_Soil) #3.WOD
 
-#rename(ID = ID_new)#5.GUM
-#rename(ID = id)#6.RAN  
-rename(ID = field_1) #7.BON and Tank
+
+id_col <- case_when(
+  site_number == "1.Walpeup_MRS125"            ~ "id",
+  site_number == "2.Crystal_Brook_Brians_House" ~ "id",
+  site_number == "3.Wynarka_Mervs_West"         ~ "id",# 
+  site_number == "4.Wharminda_Woodys"           ~ "pt_ID_Soil",  
+  site_number == "5.Walpeup_Gums"              ~ "ID_new",
+  site_number == "6.Crystal_Brook_Randals"      ~ "id",
+  site_number == "7.Wharminda_Bonanza"          ~ "field_1",
+  site_number == "8.Wynarka_Tanks"              ~ "field_1",
+  TRUE ~ NA_character_
+)
+if (is.na(id_col)) stop(paste("ID column not defined for site_number:", site_number))
+
+names(soil_results_plus_location)
+
+soil_results_plus_location <- soil_results_plus_location %>%
+  dplyr::select(all_of(id_col), "MinN_kg_ha", "SamplingDate", "ProfileDepth", "geometry") %>%
+  rename(ID = !!sym(id_col))
+
 
 #join zone type
 soil_results_plus_location_zone <-st_join(soil_results_plus_location, zones, 
@@ -178,7 +193,7 @@ soil_results_plus_location_zone <-st_join(soil_results_plus_location, zones,
 #join trial / treatment strip 
 soil_results_plus_location_zone_strip <-st_join(soil_results_plus_location_zone, 
                                                 trial, 
-                                          join = st_within)  
+                                                join = st_within)  
 
 ### some site wont have treatment yet if this happens#BON has not got a trial yet
 #soil_results_plus_location_zone_strip <- soil_results_plus_location_zone
@@ -187,36 +202,30 @@ names(soil_results_plus_location_zone_strip)
 ## rename some clms and tidy up
 
 
-soil_results_plus_location_zone_strip <- soil_results_plus_location_zone_strip %>% 
-  #rename (zone = gridcode) %>% #1.MRS
-  #rename (zone = cluster) %>% #2.BH
-  #rename (zone = fcl_mdl) %>%  #3.WOD
-  #rename (zone = cluster3) %>% #5.GUM
-  #rename (zone = cluster) %>% #6.RAN
-  #rename (zone = DN) %>%  #7.BON
-  rename (zone = zone) %>%  #8.BON
-  
-  dplyr::select("ID",
-                "MinN_kg_ha",
-                "SamplingDate",
-                "ProfileDepth",
-                "zone",
-                "treat_desc",#BON and TAN has not got a trial yet
-                "geometry" )
-  
+zone_col <- case_when(
+  site_number == "1.Walpeup_MRS125"             ~ "gridcode",
+  site_number == "2.Crystal_Brook_Brians_House"  ~ "cluster",
+  site_number == "3.Wynarka_Mervs_West"          ~ "fcl_mdl", # update when known
+  site_number == "4.Wharminda_Woodys"            ~ "fcl_mdl", 
+  site_number == "5.Walpeup_Gums"               ~ "cluster3",
+  site_number == "6.Crystal_Brook_Randals"       ~ "cluster",
+  site_number == "7.Wharminda_Bonanza"           ~ "DN",
+  site_number == "8.Wynarka_Tanks"               ~ "zone",
+  TRUE ~ NA_character_
+)
+if (is.na(zone_col)) stop(paste("Zone column not defined for site_number:", site_number))
+
+soil_results_plus_location_zone_strip <- soil_results_plus_location_zone_strip %>%
+  rename(zone = !!sym(zone_col)) %>%
+  dplyr::select("ID", "MinN_kg_ha", "SamplingDate", "ProfileDepth", "zone", 
+                "treat_desc",
+                "geometry")
+
 
 names(soil_results_plus_location_zone_strip)
 
 ## rename the zone clm 
-#zones <- zones %>%  dplyr::rename(zone = gridcode) #1.MRS
-#zones <- zones %>%  dplyr::rename(zone = cluster) #2.BH
-#zones <- zones %>%  dplyr::rename(zone = fcl_mdl ) #3.WOD
-#zones <- zones %>%  dplyr::rename(zone = cluster3)#5.gum
-#zones <- zones %>%  dplyr::rename(zone = cluster)#6.RAN
-#zones <- zones %>%  dplyr::rename(zone = DN) #7.BON
-
-
-#zones <- zones %>%  dplyr::rename(zone = gridcode )
+zones <- zones %>% dplyr::rename(zone = !!sym(zone_col))
 
 
 
