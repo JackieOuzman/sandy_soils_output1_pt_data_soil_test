@@ -2,7 +2,7 @@
 ################################################################################
 ########################            Define the directory              ##########
 ################################################################################
-site_number_input <- 1  # <-- change this number only
+site_number_input <- 8  # <-- change this number only
 
 site_lookup <- data.frame(
   id = 1:8,

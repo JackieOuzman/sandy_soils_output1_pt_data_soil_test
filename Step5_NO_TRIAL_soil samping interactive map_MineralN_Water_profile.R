@@ -19,7 +19,7 @@ library(ggspatial)
 ################################################################################
 ########################            Define the directory              ##########
 ################################################################################
-site_number_input <- 6  # <-- change this number only
+site_number_input <- 8  # <-- change this number only
 
 site_lookup <- data.frame(
   id = 1:8,
@@ -125,20 +125,21 @@ Soil_test_results_source <- "/6.Soil_Data/Compiled_Data/Pre_sowing_N_and_H2O_26.
 # --- Read for shapefiles ---
 zones <- st_read(paste0(headDir, zones_shapefile_source))
 bounadry    <- st_read(paste0(headDir,boundary_shapefile_source))
-trial    <- st_read(paste0(headDir,trial_shapefile_source)) #BON and #TAN no trial yet
+#trial    <- st_read(paste0(headDir,trial_shapefile_source)) #BON and #TAN no trial yet
 sampling_pts   <- st_read(paste0(headDir,sampling_pts_shapefile_source))
 soil_results   <- read_csv(paste0(headDir,Soil_test_results_source))
 #################################################################################
 #Fix the sampling_pts names 
-# sampling_pts <- sampling_pts %>%
-#   mutate(field_1 = as.numeric(gsub("TAN", "", Sample)))
-# str(sampling_pts)
+if (site_number_input == 8) {
+  sampling_pts <- sampling_pts %>%
+    mutate(field_1 = as.numeric(gsub("TAN", "", Sample)))
+}
 
 #################################################################################
 ### Join the sampling pts to the soil test results
 #################################################################################
-names(soil_results)
-names(sampling_pts)
+str(soil_results)
+str(sampling_pts)
 
 #join sampling location to results
 
@@ -192,12 +193,12 @@ soil_results_plus_location_zone <-st_join(soil_results_plus_location, zones,
                                           join = st_within)  
 
 #join trial / treatment strip 
-soil_results_plus_location_zone_strip <-st_join(soil_results_plus_location_zone, 
-                                                trial, 
-                                                join = st_within)  
+# soil_results_plus_location_zone_strip <-st_join(soil_results_plus_location_zone, 
+#                                                 trial, 
+#                                                 join = st_within)  
 
 ### some site wont have treatment yet if this happens#BON has not got a trial yet
-#soil_results_plus_location_zone_strip <- soil_results_plus_location_zone
+soil_results_plus_location_zone_strip <- soil_results_plus_location_zone
 
 names(soil_results_plus_location_zone_strip)
 ## rename some clms and tidy up
@@ -221,7 +222,7 @@ names(soil_results_plus_location_zone_strip)
 soil_results_plus_location_zone_strip <- soil_results_plus_location_zone_strip %>%
   rename(zone = !!sym(zone_col)) %>%
   dplyr::select("ID", "Value", "Soil_test", "SamplingDate", "ProfileDepth", "zone", 
-                "treat_desc",
+                #"treat_desc",
                 "geometry")
 
 
@@ -239,7 +240,7 @@ zones <- zones %>% dplyr::rename(zone = !!sym(zone_col))
 zones         <- st_transform(zones, 4326)
 bounadry      <- st_transform(bounadry, 4326)
 sampling_pts  <- st_transform(soil_results_plus_location_zone_strip, 4326)
-trial         <- st_transform(trial, 4326)
+#trial         <- st_transform(trial, 4326)
 
 
 #################################################################################
@@ -302,19 +303,19 @@ pal_zones <- colorFactor(
 )
 
 ## strips
-strips_details_details <- readxl::read_excel(
-  paste0(metadata_path,metadata_file_name),
-  sheet = "treatment names") %>%
-  filter(Site == site_number)  
+# strips_details_details <- readxl::read_excel(
+#   paste0(metadata_path,metadata_file_name),
+#   sheet = "treatment names") %>%
+#   filter(Site == site_number)  
+# 
+# palette_strip <- setNames(strips_details_details$Hex,
+#                           strips_details_details$`Treatment Name`)
 
-palette_strip <- setNames(strips_details_details$Hex,
-                          strips_details_details$`Treatment Name`)
 
-
-pal_strip <- colorFactor(
-  palette = palette_strip,
-  levels  = names(palette_strip)
-)
+# pal_strip <- colorFactor(
+#   palette = palette_strip,
+#   levels  = names(palette_strip)
+# )
 
 
 #################################################################################
@@ -374,15 +375,15 @@ map <- leaflet()  %>%
   )  %>% 
   
   #some sites dont have strips yet
-  addPolygons(
-    data        = trial,
-    fillColor   = ~pal_strip(treat_desc),
-    fillOpacity = 0.6,
-    color       = "black",
-    weight      = 1,
-    popup       = ~paste0("<b>Treatments: ", treat_desc, "</b>"),
-    group       = "Strips"
-  )%>%
+  # addPolygons(
+  #   data        = trial,
+  #   fillColor   = ~pal_strip(treat_desc),
+  #   fillOpacity = 0.6,
+  #   color       = "black",
+  #   weight      = 1,
+  #   popup       = ~paste0("<b>Treatments: ", treat_desc, "</b>"),
+  #   group       = "Strips"
+  # )%>%
   
   addCircleMarkers(
     data        = sampling_pts_filter_wide,
@@ -395,7 +396,7 @@ map <- leaflet()  %>%
       "<b>Sample ID: ", ID, "</b><br>",
       "Date: ", SamplingDate, "<br>",
       "Zone: ", zone, "<br>",
-      "Treatment: ", treat_desc, "<br>",
+      #"Treatment: ", treat_desc, "<br>",
       "Min N (kg/ha): ", round(MinN_kg_ha, 1), "<br>",
       "Soil Water (mm): ", round(Soil_water_mm_profile, 1)
     ),
@@ -411,18 +412,18 @@ map <- leaflet()  %>%
   )  %>% 
   
  # # some sites dont have strips yet
-  addLegend(
-    position = "bottomright",
-    colors   = unname(palette_strip),
-    labels   = strips_details_details$`Treatment Name`,
-    title    = "Treatment",
-    opacity  = 0.6
-  ) %>%
+  # addLegend(
+  #   position = "bottomright",
+  #   colors   = unname(palette_strip),
+  #   labels   = strips_details_details$`Treatment Name`,
+  #   title    = "Treatment",
+  #   opacity  = 0.6
+  # ) %>%
   
   addLayersControl(
     baseGroups    = c("Light basemap", "Satellite"),
-    overlayGroups = c("Zone", "Strips", "Sampling points"),
-    #overlayGroups = c("Zone", "Sampling points"),
+    #overlayGroups = c("Zone", "Strips", "Sampling points"),
+    overlayGroups = c("Zone", "Sampling points"),
     options       = layersControlOptions(collapsed = FALSE)
   )%>% 
   addLegend(
@@ -501,15 +502,15 @@ static_map <- ggplot() +
                     values = palette_zone,
                     labels = zone_details_details$`zone label names`) +
   
-  # New scale for strips
-  ggnewscale::new_scale_fill() +
+  # # New scale for strips
+  # ggnewscale::new_scale_fill() +
   
-  # Strips
-  geom_sf(data = trial, aes(fill = treat_desc),
-          alpha = 0.6, color = "black", linewidth = 0.3) +
-  scale_fill_manual(name   = "Treatment",
-                    values = palette_strip,
-                    labels = strips_details_details$`Treatment Name`) +
+  # # Strips
+  # geom_sf(data = trial, aes(fill = treat_desc),
+  #         alpha = 0.6, color = "black", linewidth = 0.3) +
+  # scale_fill_manual(name   = "Treatment",
+  #                   values = palette_strip,
+  #                   labels = strips_details_details$`Treatment Name`) +
   
   # Boundary
   geom_sf(data = bounadry,
