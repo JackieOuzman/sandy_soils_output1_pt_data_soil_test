@@ -74,6 +74,7 @@ sampling_timing <- "Pre_Season"
 year_sampling <- 26
 soil_test <- "Mineral N profile"
 
+
 zones_shapefile_source <- readxl::read_excel(
   paste0(metadata_path,metadata_file_name),
   sheet = "file location etc") %>%
