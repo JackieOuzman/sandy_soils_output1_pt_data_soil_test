@@ -9,6 +9,7 @@ library(readxl)
 library(mapview)
 library(readr)
 library(kableExtra)
+library(tidyverse)
 
 
 #install.packages("ggnewscale")
@@ -302,20 +303,7 @@ pal_zones <- colorFactor(
   levels  = names(palette_zone)
 )
 
-## strips
-# strips_details_details <- readxl::read_excel(
-#   paste0(metadata_path,metadata_file_name),
-#   sheet = "treatment names") %>%
-#   filter(Site == site_number)  
-# 
-# palette_strip <- setNames(strips_details_details$Hex,
-#                           strips_details_details$`Treatment Name`)
 
-
-# pal_strip <- colorFactor(
-#   palette = palette_strip,
-#   levels  = names(palette_strip)
-# )
 
 
 #################################################################################
@@ -360,7 +348,7 @@ map <- leaflet()  %>%
     data        = bounadry,
     fillOpacity = 0,
     color       = "black",
-    weight      = 2,
+    weight      = 4, #2
     group       = "Boundary"
   ) %>% 
   
@@ -374,20 +362,11 @@ map <- leaflet()  %>%
     group       = "Zone"
   )  %>% 
   
-  #some sites dont have strips yet
-  # addPolygons(
-  #   data        = trial,
-  #   fillColor   = ~pal_strip(treat_desc),
-  #   fillOpacity = 0.6,
-  #   color       = "black",
-  #   weight      = 1,
-  #   popup       = ~paste0("<b>Treatments: ", treat_desc, "</b>"),
-  #   group       = "Strips"
-  # )%>%
+  
   
   addCircleMarkers(
     data        = sampling_pts_filter_wide,
-    radius      = 5,
+    radius      = 7.5, #5
     color       = ~pal_minN(MinN_class),
     fillColor   = ~pal_minN(MinN_class),
     fillOpacity = 0.8,
@@ -396,7 +375,6 @@ map <- leaflet()  %>%
       "<b>Sample ID: ", ID, "</b><br>",
       "Date: ", SamplingDate, "<br>",
       "Zone: ", zone, "<br>",
-      #"Treatment: ", treat_desc, "<br>",
       "Min N (kg/ha): ", round(MinN_kg_ha, 1), "<br>",
       "Soil Water (mm): ", round(Soil_water_mm_profile, 1)
     ),
@@ -411,18 +389,9 @@ map <- leaflet()  %>%
     opacity  = 0.6
   )  %>% 
   
- # # some sites dont have strips yet
-  # addLegend(
-  #   position = "bottomright",
-  #   colors   = unname(palette_strip),
-  #   labels   = strips_details_details$`Treatment Name`,
-  #   title    = "Treatment",
-  #   opacity  = 0.6
-  # ) %>%
-  
+ 
   addLayersControl(
-    baseGroups    = c("Light basemap", "Satellite"),
-    #overlayGroups = c("Zone", "Strips", "Sampling points"),
+    baseGroups    = c("Satellite", "Light basemap"),
     overlayGroups = c("Zone", "Sampling points"),
     options       = layersControlOptions(collapsed = FALSE)
   )%>% 
@@ -456,10 +425,39 @@ map <- map %>%
     html     = paste0('<div style="background:white; padding:4px 8px; border-radius:4px; font-size:11px; color:#555;">',
                       'Created: ', format(Sys.Date(), "%d %B %Y"),
                       '. Sampling date: ', unique(sampling_pts_filter$SamplingDate),
-                      #'. Sampling depth: ', unique(sampling_pts_filter$ProfileDepth), #removed the depth info
                       '</div>'),
     position = "bottomleft"
   )
+
+
+
+### EDITS FROM SR
+
+
+### the legend be bigger (maybe almost 2x bigger – or close to, depending on what it looks like).
+map <- map %>%
+  htmlwidgets::onRender("
+    function(el, x) {
+      var style = document.createElement('style');
+      style.innerHTML = '.leaflet-right .leaflet-control, .leaflet-right .leaflet-control * { font-size: 16px !important; line-height: 1.8 !important; }';
+      document.head.appendChild(style);
+    }
+  ")
+
+###text so when you click on the point also be bigger – maybe 1.5 – 2 x
+
+map <- map %>%
+  htmlwidgets::onRender("
+    function(el, x) {
+      var style = document.createElement('style');
+      style.innerHTML = '.leaflet-popup-content { font-size: 16px !important; line-height: 1.8 !important; }';
+      document.head.appendChild(style);
+    }
+  ")
+
+
+
+
 
 map
 
@@ -502,16 +500,6 @@ static_map <- ggplot() +
                     values = palette_zone,
                     labels = zone_details_details$`zone label names`) +
   
-  # # New scale for strips
-  # ggnewscale::new_scale_fill() +
-  
-  # # Strips
-  # geom_sf(data = trial, aes(fill = treat_desc),
-  #         alpha = 0.6, color = "black", linewidth = 0.3) +
-  # scale_fill_manual(name   = "Treatment",
-  #                   values = palette_strip,
-  #                   labels = strips_details_details$`Treatment Name`) +
-  
   # Boundary
   geom_sf(data = bounadry,
           fill = NA, color = "black", linewidth = 0.6) +
@@ -522,7 +510,7 @@ static_map <- ggplot() +
   
   # Sampling points
   geom_sf(data = sampling_pts_filter_wide, aes(fill = MinN_class, color = MinN_class),
-          shape = 21, size = 3, stroke = 0.8) +
+          shape = 21, size = 4.5, stroke = 0.8) + #was 3
   scale_fill_manual(name   = "Min N (kg/ha)",
                     values = c("Low" = "#d7191c", "Medium" = "#fdae61", "High" = "#1a9641"),
                     breaks = c("Low", "Medium", "High")) +
@@ -532,7 +520,7 @@ static_map <- ggplot() +
   
   # Sample ID labels
   geom_sf_text(data = sampling_pts_filter_wide, aes(label = ID),
-               size = 2.5, fontface = "bold",
+               size = 3.5, fontface = "bold", #was 2.5
                nudge_y = 0.00015) +
   
   # Scale bar and north arrow
