@@ -19,7 +19,7 @@ library(ggspatial)
 ################################################################################
 ########################            Define the directory              ##########
 ################################################################################
-site_number_input <- 6  # <-- change this number only
+site_number_input <- 1  # <-- change this number only
 
 site_lookup <- data.frame(
   id = 1:8,
@@ -359,7 +359,7 @@ map <- leaflet()  %>%
     data        = bounadry,
     fillOpacity = 0,
     color       = "black",
-    weight      = 2,
+    weight      = 4,#2
     group       = "Boundary"
   ) %>% 
   
@@ -386,7 +386,7 @@ map <- leaflet()  %>%
   
   addCircleMarkers(
     data        = sampling_pts_filter_wide,
-    radius      = 5,
+    radius      = 7.5,#5
     color       = ~pal_minN(MinN_class),
     fillColor   = ~pal_minN(MinN_class),
     fillOpacity = 0.8,
@@ -420,7 +420,7 @@ map <- leaflet()  %>%
   ) %>%
   
   addLayersControl(
-    baseGroups    = c("Light basemap", "Satellite"),
+    baseGroups    = c("Satellite", "Light basemap" ),
     overlayGroups = c("Zone", "Strips", "Sampling points"),
     #overlayGroups = c("Zone", "Sampling points"),
     options       = layersControlOptions(collapsed = FALSE)
@@ -430,8 +430,15 @@ map <- leaflet()  %>%
     pal      = pal_minN,
     values   = factor(sampling_pts_filter_wide$MinN_class, levels = c("Low", "Medium", "High")),
     title    = "Min N (kg/ha)",
-    opacity  = 0.8
-  ) %>%
+    opacity  = 0.8,
+    labFormat = labelFormat(
+      transform = function(x) c(
+        "Low: < 40",
+        "Medium: 40–70",
+        "High: > 70"
+      )
+    )
+  )%>%
   
   addScaleBar(position = "bottomleft")
 
@@ -459,6 +466,32 @@ map <- map %>%
                       '</div>'),
     position = "bottomleft"
   )
+
+
+### EDITS FROM SR
+
+
+### the legend be bigger (maybe almost 2x bigger – or close to, depending on what it looks like).
+map <- map %>%
+  htmlwidgets::onRender("
+    function(el, x) {
+      var style = document.createElement('style');
+      style.innerHTML = '.leaflet-right .leaflet-control, .leaflet-right .leaflet-control * { font-size: 16px !important; line-height: 1.8 !important; }';
+      document.head.appendChild(style);
+    }
+  ")
+
+###text so when you click on the point also be bigger – maybe 1.5 – 2 x
+
+map <- map %>%
+  htmlwidgets::onRender("
+    function(el, x) {
+      var style = document.createElement('style');
+      style.innerHTML = '.leaflet-popup-content { font-size: 16px !important; line-height: 1.8 !important; }';
+      document.head.appendChild(style);
+    }
+  ")
+
 
 map
 
@@ -520,14 +553,17 @@ static_map <- ggplot() +
   ggnewscale::new_scale_color() +
   
   # Sampling points
+ 
   geom_sf(data = sampling_pts_filter_wide, aes(fill = MinN_class, color = MinN_class),
-          shape = 21, size = 3, stroke = 0.8) +
+          shape = 21, size = 4.5, stroke = 0.8) + #was 3
   scale_fill_manual(name   = "Min N (kg/ha)",
                     values = c("Low" = "#d7191c", "Medium" = "#fdae61", "High" = "#1a9641"),
-                    breaks = c("Low", "Medium", "High")) +
+                    breaks = c("Low", "Medium", "High"),
+                    labels = c("Low: < 40", "Medium: 40-70", "High: > 70")) +   # <-- add this
   scale_color_manual(name  = "Min N (kg/ha)",
                      values = c("Low" = "#d7191c", "Medium" = "#fdae61", "High" = "#1a9641"),
-                     breaks = c("Low", "Medium", "High")) +
+                     breaks = c("Low", "Medium", "High"),
+                     labels = c("Low: < 40", "Medium: 40-70", "High: > 70")) +  # <-- add this
   
   # Sample ID labels
   geom_sf_text(data = sampling_pts_filter_wide, aes(label = ID),
