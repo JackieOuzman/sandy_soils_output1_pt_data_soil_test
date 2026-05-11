@@ -19,7 +19,7 @@ library(ggspatial)
 ################################################################################
 ########################            Define the directory              ##########
 ################################################################################
-site_number_input <- 1  # <-- change this number only
+site_number_input <- 6  # <-- change this number only
 
 site_lookup <- data.frame(
   id = 1:8,
