@@ -20,7 +20,7 @@ library(ggspatial)
 ################################################################################
 ########################            Define the directory              ##########
 ################################################################################
-site_number_input <- 8  # <-- change this number only
+site_number_input <- 7  # <-- change this number only
 
 site_lookup <- data.frame(
   id = 1:8,
@@ -400,13 +400,20 @@ map <- leaflet()  %>%
     pal      = pal_minN,
     values   = factor(sampling_pts_filter_wide$MinN_class, levels = c("Low", "Medium", "High")),
     title    = "Min N (kg/ha)",
-    opacity  = 0.8
+    opacity  = 0.8,
+    labFormat = labelFormat(
+      transform = function(x) c(
+        "Low: < 40",
+        "Medium: 40–70",
+        "High: > 70"
+      )
+    )
   ) %>%
   
   addScaleBar(position = "bottomleft")
 
 
-
+map
 
 
 
@@ -513,10 +520,12 @@ static_map <- ggplot() +
           shape = 21, size = 4.5, stroke = 0.8) + #was 3
   scale_fill_manual(name   = "Min N (kg/ha)",
                     values = c("Low" = "#d7191c", "Medium" = "#fdae61", "High" = "#1a9641"),
-                    breaks = c("Low", "Medium", "High")) +
+                    breaks = c("Low", "Medium", "High"),
+                    labels = c("Low: < 40", "Medium: 40-70", "High: > 70")) +   # <-- add this
   scale_color_manual(name  = "Min N (kg/ha)",
                      values = c("Low" = "#d7191c", "Medium" = "#fdae61", "High" = "#1a9641"),
-                     breaks = c("Low", "Medium", "High")) +
+                     breaks = c("Low", "Medium", "High"),
+                     labels = c("Low: < 40", "Medium: 40-70", "High: > 70")) +  # <-- add this
   
   # Sample ID labels
   geom_sf_text(data = sampling_pts_filter_wide, aes(label = ID),
