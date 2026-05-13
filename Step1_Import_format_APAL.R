@@ -9,7 +9,7 @@ library(sf)
 ################################################################################
 ########################            Define the directory              ##########
 ################################################################################
-site_number_input <- 7  # <-- change this number only
+site_number_input <- 8  # <-- change this number only
 
 site_lookup <- data.frame(
   id = 1:8,
@@ -91,7 +91,10 @@ sampling_pts_shapefile_source <- readxl::read_excel(
 # --- Read for shapefile ---
 sampling_pts   <- st_read(paste0(headDir,sampling_pts_shapefile_source))
 
-
+if (site_number_input == 8) {
+  sampling_pts <- sampling_pts %>%
+    mutate(field_1 = as.numeric(gsub("TAN", "", Sample)))
+}
 
 ### import data ###########################################################
 
@@ -175,8 +178,7 @@ write.csv(df_subset, out_file, row.names = FALSE)
 str(df_subset)
 str(sampling_pts)
 
-names(df_subset)
-names(sampling_pts)
+
 
 join_col <- case_when(
   site_number == "1.Walpeup_MRS125"            ~ "id",
