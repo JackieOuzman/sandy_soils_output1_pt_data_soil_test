@@ -4,50 +4,47 @@ library(dplyr)
 library(readr)
 library(readxl)
 library(tidyverse)
-
+library(sf)
 
 ################################################################################
 ########################            Define the directory              ##########
 ################################################################################
+site_number_input <- 7  # <-- change this number only
 
+site_lookup <- data.frame(
+  id = 1:8,
+  site_number = c(
+    "1.Walpeup_MRS125",
+    "2.Crystal_Brook_Brians_House",
+    "3.Wynarka_Mervs_West",
+    "4.Wharminda_Woodys",
+    "5.Walpeup_Gums",
+    "6.Crystal_Brook_Randals",
+    "7.Wharminda_Bonanza",
+    "8.Wynarka_Tanks"
+  ),
+  site_name = c(
+    "Walpeup_MRS125",
+    "Crystal_Brook_Brians_House",
+    "Wynarka_Mervs_West",
+    "Wharminda_Woodys",
+    "Walpeup_Gums",
+    "Crystal_Brook_Randals",
+    "Wharminda_Bonanza",
+    "Wynarka_Tanks"
+  )
+)
 
-
-# site_number <- "1.Walpeup_MRS125"
-# site_name <- "Walpeup_MRS125"
-
-# site_number <- "2.Crystal_Brook_Brians_House"
-# site_name <- "Crystal_Brook_Brians_House"
-
-site_number <- "3.Wynarka_Mervs_West"
-site_name <- "Wynarka_Mervs_West"
-
-# site_number <- "4.Wharminda_Woodys"
-# site_name <- "Wharminda_Woodys"
-
-# site_number <-  "5.Walpeup_Gums"
-# site_name   <-  "Walpeup_Gums"
-
-# site_number <-  "6.Crystal_Brook_Randals"
-# site_name   <-  "Crystal_Brook_Randals"
-
-
-## New Sites ###
-# site_number <- "7.Wharminda_Bonanza"
-# site_name <- "Wharminda_Bonanza"
-
-#site_number <- "8.Wynarka_Tanks"
-#site_name <- "Wynarka_Tanks"
-
-
-
+site_row        <- site_lookup[site_lookup$id == site_number_input, ]
+site_number     <- site_row$site_number
+site_name       <- site_row$site_name
 
 
 dir <- "//fs1-cbr.nexus.csiro.au/{af-sandysoils-ii}"
 headDir <- paste0(dir, "/work/Output-1/", site_number)
 
 soils_folder  <- "/6.Soil_Data"
-subfolder     <- "/4.26/RawData/"
-#subfolder     <- "/1.Baseline/RawData/"
+subfolder <- if (site_number_input %in% c(7, 8)) "/1.Baseline/RawData/" else "/4.26/RawData/"
 
 
 file <- case_when(
@@ -67,9 +64,32 @@ file <- case_when(
 
 if (is.na(file)) stop(paste("Unknown site_number:", site_number))
 
-
-
 worksheet      <- "Data"
+
+
+metadata_path <- paste0(dir,"/work/Output-1/0.Site-info/")
+
+metadata_file_name <- "names of treatments per site 2025 metadata and other info.xlsx"
+
+crs_used <- 4326 # Name: WGS 84 (World Geodetic System 1984) Type: Geographic coordinate system (latitude/longitude)
+projetion_crs <- 7854 #GDA2020 / MGA Zone 54 (EPSG:7854).
+
+#################################################################################
+# --- Paths for shape files ---
+#################################################################################
+## Note some samples are taken as a baseline other are pre season
+sampling_timing <- ifelse(site_number_input <= 6, "Pre_Season", "Baseline")
+year_sampling <- 26
+
+sampling_pts_shapefile_source <- readxl::read_excel(
+  paste0(metadata_path,metadata_file_name),
+  sheet = "Soil_sampling_files_location") %>%
+  filter(Site == site_number)  %>%
+  filter(variable == paste0(sampling_timing, "_Soil_Sampling_Location_", year_sampling )) %>% 
+  pull("file path")
+################################################################################
+# --- Read for shapefile ---
+sampling_pts   <- st_read(paste0(headDir,sampling_pts_shapefile_source))
 
 
 
@@ -145,3 +165,73 @@ dir.create(out_folder, showWarnings = FALSE, recursive = TRUE)
 out_file <- paste0(out_folder, tools::file_path_sans_ext(file), "_reformat.csv")
 
 write.csv(df_subset, out_file, row.names = FALSE)
+
+
+##############################################################################
+## SR wants the x and y coord added to the dataframe
+
+
+#join sampling location to results
+str(df_subset)
+str(sampling_pts)
+
+names(df_subset)
+names(sampling_pts)
+
+join_col <- case_when(
+  site_number == "1.Walpeup_MRS125"            ~ "id",
+  site_number == "2.Crystal_Brook_Brians_House" ~ "id",
+  site_number == "3.Wynarka_Mervs_West"         ~ "id",
+  site_number == "4.Wharminda_Woodys"           ~ "pt_ID_Soil",  
+  site_number == "5.Walpeup_Gums"              ~ "ID_new",
+  site_number == "6.Crystal_Brook_Randals"      ~ "id",
+  site_number == "7.Wharminda_Bonanza"          ~ "field_1",
+  site_number == "8.Wynarka_Tanks"              ~ "field_1",
+  TRUE ~ NA_character_
+)
+if (is.na(join_col)) stop(paste("Join column not defined for site_number:", site_number))
+
+# Keep only join column and geometry. Tidy up so that I am not using any predefined zones
+sampling_pts <- sampling_pts[, c(join_col, attr(sampling_pts, "sf_column"))]
+
+# Convert join column to character if needed
+if (!is.character(sampling_pts[[join_col]])) {
+  sampling_pts[[join_col]] <- as.character(sampling_pts[[join_col]])
+}
+
+### Join sampling location to soil test results
+soil_results_plus_location <- left_join(
+  sampling_pts,
+  df_subset,
+  join_by(!!sym(join_col) == SampleNameShort)
+)
+
+id_col <- case_when(
+  site_number == "1.Walpeup_MRS125"            ~ "id",
+  site_number == "2.Crystal_Brook_Brians_House" ~ "id",
+  site_number == "3.Wynarka_Mervs_West"         ~ "id",# 
+  site_number == "4.Wharminda_Woodys"           ~ "pt_ID_Soil",  
+  site_number == "5.Walpeup_Gums"              ~ "ID_new",
+  site_number == "6.Crystal_Brook_Randals"      ~ "id",
+  site_number == "7.Wharminda_Bonanza"          ~ "field_1",
+  site_number == "8.Wynarka_Tanks"              ~ "field_1",
+  TRUE ~ NA_character_
+)
+if (is.na(id_col)) stop(paste("ID column not defined for site_number:", site_number))
+
+## Assign a consistent name to soil test ID results
+soil_results_plus_location <- soil_results_plus_location %>%
+    rename(ID = !!sym(id_col))
+
+
+
+soil_results_plus_location$CRS <- st_crs(soil_results_plus_location)$input
+names(soil_results_plus_location)
+
+coords <- st_coordinates(soil_results_plus_location)
+soil_results_plus_location$X <- coords[, "X"]
+soil_results_plus_location$Y <- coords[, "Y"]
+
+out_file <- paste0(out_folder, tools::file_path_sans_ext(file), "_reformat_coods.csv")
+
+write.csv(st_drop_geometry(soil_results_plus_location), out_file, row.names = FALSE)
