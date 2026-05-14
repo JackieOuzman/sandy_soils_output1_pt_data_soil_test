@@ -9,7 +9,7 @@ library(readxl)
 library(mapview)
 library(readr)
 library(kableExtra)
-
+library(tidyverse)
 
 #install.packages("ggnewscale")
 library(ggnewscale)
@@ -540,9 +540,12 @@ static_map <- ggplot() +
   # Strips
   geom_sf(data = trial, aes(fill = treat_desc),
           alpha = 0.6, color = "black", linewidth = 0.3) +
-  scale_fill_manual(name   = "Treatment",
-                    values = palette_strip,
-                    labels = strips_details_details$`Treatment Name`) +
+  scale_fill_manual(
+    name   = "Treatment",
+    values = palette_strip,
+    labels = setNames(strips_details_details$`Treatment Name`,
+                      names(palette_strip))
+  ) +
   
   # Boundary
   geom_sf(data = bounadry,
@@ -553,17 +556,16 @@ static_map <- ggplot() +
   ggnewscale::new_scale_color() +
   
   # Sampling points
- 
   geom_sf(data = sampling_pts_filter_wide, aes(fill = MinN_class, color = MinN_class),
-          shape = 21, size = 4.5, stroke = 0.8) + #was 3
+          shape = 21, size = 4.5, stroke = 0.8) +
   scale_fill_manual(name   = "Min N (kg/ha)",
                     values = c("Low" = "#d7191c", "Medium" = "#fdae61", "High" = "#1a9641"),
                     breaks = c("Low", "Medium", "High"),
-                    labels = c("Low: < 40", "Medium: 40-70", "High: > 70")) +   # <-- add this
+                    labels = c("Low: < 40", "Medium: 40-70", "High: > 70")) +
   scale_color_manual(name  = "Min N (kg/ha)",
                      values = c("Low" = "#d7191c", "Medium" = "#fdae61", "High" = "#1a9641"),
                      breaks = c("Low", "Medium", "High"),
-                     labels = c("Low: < 40", "Medium: 40-70", "High: > 70")) +  # <-- add this
+                     labels = c("Low: < 40", "Medium: 40-70", "High: > 70")) +
   
   # Sample ID labels
   geom_sf_text(data = sampling_pts_filter_wide, aes(label = ID),
