@@ -9,7 +9,7 @@ library(sf)
 ################################################################################
 ########################            Define the directory              ##########
 ################################################################################
-site_number_input <- 8  # <-- change this number only
+site_number_input <- 1  # <-- change this number only
 
 site_lookup <- data.frame(
   id = 1:8,
@@ -45,6 +45,10 @@ headDir <- paste0(dir, "/work/Output-1/", site_number)
 
 soils_folder  <- "/6.Soil_Data"
 subfolder <- if (site_number_input %in% c(7, 8)) "/1.Baseline/RawData/" else "/4.26/RawData/"
+#Nb for all sites but not 7 and 8 it looks like this
+# //fs1-cbr.nexus.csiro.au/{af-sandysoils-ii}/work/Output-1/[site_number]/6.Soil_Data/4.26/RawData/
+# for sites 7 and 8 it looks like this
+#//fs1-cbr.nexus.csiro.au/{af-sandysoils-ii}/work/Output-1/[site_number]/6.Soil_Data/1.Baseline/RawData/
 
 
 file <- case_when(
