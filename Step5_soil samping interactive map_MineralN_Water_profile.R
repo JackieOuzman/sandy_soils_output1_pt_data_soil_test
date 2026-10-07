@@ -19,7 +19,7 @@ library(ggspatial)
 ################################################################################
 ########################            Define the directory              ##########
 ################################################################################
-site_number_input <- 2  # <-- change this number only
+site_number_input <- 7  # <-- change this number only
 
 site_lookup <- data.frame(
   id = 1:8,
@@ -113,8 +113,11 @@ sampling_pts_shapefile_source <- readxl::read_excel(
 
 Soil_test_results_source <- "/6.Soil_Data/Compiled_Data/Pre_sowing_N_and_H2O_26.csv"
 
-
-
+# NEW: some sites have a duplicated row in the metadata sheet, so keep one path of each
+zones_shapefile_source        <- unique(zones_shapefile_source)         # NEW
+boundary_shapefile_source     <- unique(boundary_shapefile_source)      # NEW
+trial_shapefile_source        <- unique(trial_shapefile_source)         # NEW
+sampling_pts_shapefile_source <- unique(sampling_pts_shapefile_source)  # NEW
 
 
 
@@ -607,3 +610,4 @@ ggsave(
   dpi      = 300,
   units    = "in"
 )
+

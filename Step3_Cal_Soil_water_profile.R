@@ -9,36 +9,38 @@ library(tidyverse)
 ################################################################################
 ########################            Define the directory              ##########
 ################################################################################
+#### this is only for site 1-7
 
+site_number_input <- 8  # <-- change this number only (1-7)   
 
+site_lookup <- data.frame(                                     # 
+  id = 1:8,                                                    # 
+  site_number = c(                                             # 
+    "1.Walpeup_MRS125",                                        # 
+    "2.Crystal_Brook_Brians_House",                            # 
+    "3.Wynarka_Mervs_West",                                    # 
+    "4.Wharminda_Woodys",                                      # 
+    "5.Walpeup_Gums",                                          # 
+    "6.Crystal_Brook_Randals",                                 # 
+    "7.Wharminda_Bonanza",                                     # 
+    "8.Wynarka_Tanks"                                          # 
+  ),                                                           # 
+  site_name = c(                                               # 
+    "Walpeup_MRS125",                                          # 
+    "Crystal_Brook_Brians_House",                              # 
+    "Wynarka_Mervs_West",                                      # 
+    "Wharminda_Woodys",                                        # 
+    "Walpeup_Gums",                                            # 
+    "Crystal_Brook_Randals",                                   # 
+    "Wharminda_Bonanza",                                       # 
+    "Wynarka_Tanks"                                            # 
+  )                                                            # 
+)                                                              # 
 
-# site_number <- "1.Walpeup_MRS125"
-# site_name <- "Walpeup_MRS125"
+site_row    <- site_lookup[site_lookup$id == site_number_input, ]   # 
+site_number <- site_row$site_number                                 # 
+site_name   <- site_row$site_name                                   # 
 
-# site_number <- "2.Crystal_Brook_Brians_House"
-# site_name <- "Crystal_Brook_Brians_House"
-
-site_number <- "3.Wynarka_Mervs_West"
-site_name <- "Wynarka_Mervs_West"
-
-
-# site_number <- "4.Wharminda_Woodys"
-# site_name <- "Wharminda_Woodys"
-
-# site_number <-  "5.Walpeup_Gums"
-# site_name   <-  "Walpeup_Gums"
-
-# site_number <-  "6.Crystal_Brook_Randals"
-# site_name   <-  "Crystal_Brook_Randals"
-
-#### NEW Sites ######
-
-# site_number <- "7.Wharminda_Bonanza"
-# site_name <- "Wharminda_Bonanza"
-
-### this site has two sets of analysis results use Extra step script for this one
-# site_number <- "8.Wynarka_Tanks"
-# site_name <- "Wynarka_Tanks"
 
 
 
@@ -66,6 +68,9 @@ file <- case_when(
 )
 
 if (is.na(file)) stop(paste("Unknown site_number:", site_number))
+
+# NEW: Tanks needs the second dataset merged in, so use the Extra Step script for it
+if (site_number_input == 8) stop("Site 8 (Tanks) uses the 'Extra Step TANKS' script")   # NEW
 
 ################################################################################
 
@@ -126,7 +131,20 @@ df <- df %>%
 
 ################################################################################
 ### Summary data #############################################################
+# ---- NEW from here: save the layer-level soil water results ----
+layers_H2O <- df %>%
+  transmute(
+    SampleNameShort, Site, SamplingDate, SampleDepth,
+    DepthUpper, DepthLower, DepthCm,
+    Gravimetric_moisture_pct = as.numeric(.data[[Gravimetric_moist_dry_col]]),
+    Soil_water_mm,
+    bulk_density = bulk_density
+  ) %>%
+  filter(!is.na(SampleNameShort) & SampleNameShort != "")
 
+write.csv(layers_H2O,
+          paste0(headDir, soils_folder, "/Compiled_Data/", "Soil water layers", year_sampling, ".csv"),
+          row.names = FALSE)
 
 df_summary <- df %>%
   group_by(SampleNameShort) %>%
@@ -156,3 +174,4 @@ out_file <- paste0(headDir, soils_folder, "/Compiled_Data/",
                    ".csv")
 
 write.csv(df_summary, out_file, row.names = FALSE)
+

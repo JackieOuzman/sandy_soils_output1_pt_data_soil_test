@@ -20,7 +20,7 @@ library(ggspatial)
 ################################################################################
 ########################            Define the directory              ##########
 ################################################################################
-site_number_input <- 7  # <-- change this number only
+site_number_input <- 8  # <-- change this number only
 
 site_lookup <- data.frame(
   id = 1:8,
@@ -189,6 +189,9 @@ soil_results_plus_location <- soil_results_plus_location %>%
   rename(ID = !!sym(id_col))
 
 
+# NEW: the points and zones must be in the same CRS before joining
+soil_results_plus_location <- st_transform(soil_results_plus_location, st_crs(zones))   # NEW
+
 #join zone type
 soil_results_plus_location_zone <-st_join(soil_results_plus_location, zones, 
                                           join = st_within)  
@@ -212,7 +215,7 @@ zone_col <- case_when(
   site_number == "4.Wharminda_Woodys"            ~ "fcl_mdl", 
   site_number == "5.Walpeup_Gums"               ~ "cluster3",
   site_number == "6.Crystal_Brook_Randals"       ~ "cluster",
-  site_number == "7.Wharminda_Bonanza"           ~ "DN",
+  site_number == "7.Wharminda_Bonanza"           ~ "cluster",   # NEW (Bonanza zone file now uses 'cluster' instead of 'DN')
   site_number == "8.Wynarka_Tanks"               ~ "zone",
   TRUE ~ NA_character_
 )

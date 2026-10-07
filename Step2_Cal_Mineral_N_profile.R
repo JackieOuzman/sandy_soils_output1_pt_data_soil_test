@@ -10,33 +10,35 @@ library(tidyverse)
 ########################            Define the directory              ##########
 ################################################################################
 
+site_number_input <- 8  # <-- change this number only (1-8)   
 
+site_lookup <- data.frame(                                     # 
+  id = 1:8,                                                    # 
+  site_number = c(                                             # 
+    "1.Walpeup_MRS125",                                        # 
+    "2.Crystal_Brook_Brians_House",                            # 
+    "3.Wynarka_Mervs_West",                                    # 
+    "4.Wharminda_Woodys",                                      # 
+    "5.Walpeup_Gums",                                          # 
+    "6.Crystal_Brook_Randals",                                 # 
+    "7.Wharminda_Bonanza",                                     # 
+    "8.Wynarka_Tanks"                                          # 
+  ),                                                           # 
+  site_name = c(                                               # 
+    "Walpeup_MRS125",                                          # 
+    "Crystal_Brook_Brians_House",                              # 
+    "Wynarka_Mervs_West",                                      # 
+    "Wharminda_Woodys",                                        # 
+    "Walpeup_Gums",                                            # 
+    "Crystal_Brook_Randals",                                   # 
+    "Wharminda_Bonanza",                                       # 
+    "Wynarka_Tanks"                                            # 
+  )                                                            # 
+)                                                              # 
 
-# site_number <- "1.Walpeup_MRS125"
-# site_name <- "Walpeup_MRS125"
-
-# site_number <- "2.Crystal_Brook_Brians_House"
-# site_name <- "Crystal_Brook_Brians_House"
-
-site_number <- "3.Wynarka_Mervs_West"
-site_name <- "Wynarka_Mervs_West"
-
-# site_number <- "4.Wharminda_Woodys"
-# site_name <- "Wharminda_Woodys"
-
-# site_number <- "7.Wharminda_Bonanza"
-# site_name <- "Wharminda_Bonanza"
-
-#site_number <- "8.Wynarka_Tanks"
-#site_name <- "Wynarka_Tanks"
-
-
-# site_number <-  "6.Crystal_Brook_Randals"
-# site_name   <-  "Crystal_Brook_Randals"
-
-
-# site_number <-  "5.Walpeup_Gums"
-# site_name   <-  "Walpeup_Gums"
+site_row    <- site_lookup[site_lookup$id == site_number_input, ]   # 
+site_number <- site_row$site_number                                 # 
+site_name   <- site_row$site_name                                   # 
 
 
 dir     <- "//fs1-cbr.nexus.csiro.au/{af-sandysoils-ii}"
@@ -134,6 +136,24 @@ Check <- df %>% select(Site:DepthCm, Nitrate_kg_ha, Ammonium_kg_ha ,
 ##what the go with the zero values?All checkes out.. if it was coded <1 it became a zero
 ################################################################################
 ### Summary data #############################################################
+# ---- NEW from here: save the layer-level N results ----
+layers_N <- df %>%
+  transmute(
+    SampleNameShort, Site, SamplingDate, SampleDepth,
+    DepthUpper, DepthLower, DepthCm,
+    Nitrate_mg_kg  = as.numeric(.data[[nitrate_col]]),
+    Ammonium_mg_kg = as.numeric(.data[[ammonium_col]]),
+    Nitrate_kg_ha, Ammonium_kg_ha,
+    MinN_kg_ha     = rowSums(across(c(Nitrate_kg_ha, Ammonium_kg_ha)), na.rm = TRUE),
+    bulk_density   = bulk_density
+  ) %>%
+  filter(!is.na(SampleNameShort) & SampleNameShort != "")
+
+write.csv(layers_N,
+          paste0(headDir, soils_folder, "/Compiled_Data/", "Mineral N layers", year_sampling, ".csv"),
+          row.names = FALSE)
+
+
 
 
 df_summary <- df %>%
@@ -166,3 +186,4 @@ out_file <- paste0(headDir, soils_folder, "/Compiled_Data/",
                    ".csv")
 
 write.csv(df_summary, out_file, row.names = FALSE)
+

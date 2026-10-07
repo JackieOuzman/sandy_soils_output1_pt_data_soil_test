@@ -149,7 +149,21 @@ df <- df %>%
 
 ################################################################################
 ### Summary data #############################################################
+# ---- NEW from here: save the layer-level soil water results ----
+layers_H2O <- df %>%
+  transmute(
+    SampleNameShort, Site, SamplingDate, SampleDepth,
+    DepthUpper, DepthLower, DepthCm,
+    Gravimetric_moisture_pct = as.numeric(.data[[Gravimetric_moist_dry_col]]),
+    Soil_water_mm,
+    bulk_density = bulk_density
+  ) %>%
+  filter(!is.na(SampleNameShort) & SampleNameShort != "")
 
+write.csv(layers_H2O,
+          paste0(headDir, soils_folder, "/Compiled_Data/", "Soil water layers", year_sampling, ".csv"),
+          row.names = FALSE)
+# ---- NEW to here ----
 
 df_summary <- df %>%
   group_by(SampleNameShort) %>%
