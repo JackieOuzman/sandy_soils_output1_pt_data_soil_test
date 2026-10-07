@@ -1,0 +1,255 @@
+
+---
+title: "Sandy Soils II Output 1: starting mineral N and soil water"
+subtitle: "Handover report"
+date: "`r format(Sys.Date(), '%d %B %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+library(dplyr)
+library(readr)
+library(stringr)
+library(tidyr)
+library(leaflet)
+library(knitr)
+
+data_dir  <- "H:/Output-1/0.Site-info/soil_N_H20_data/"
+file_stub <- "All_sites_2024_2026_N_and_H2O_"     # change if you renamed the stacked files
+
+profile <- read_csv(paste0(data_dir, file_stub, "profile.csv"),
+                    show_col_types = FALSE) %>%
+  mutate(sampling_date = as.Date(sampling_date))
+groups  <- read_csv(paste0(data_dir, file_stub, "depth_groups.csv"), show_col_types = FALSE)
+layers  <- read_csv(paste0(data_dir, file_stub, "depth_layers.csv"), show_col_types = FALSE)
+
+## closest town: typed from the site names, edit here if you check them
+towns <- tribble(
+  ~site,                        ~closest_town,
+  "Walpeup_MRS125",             "Walpeup, Vic",
+  "Crystal_Brook_Brians_House", "Crystal Brook, SA",
+  "Wynarka_Mervs_West",         "Wynarka, SA",
+  "Wharminda_Woodys",           "Wharminda, SA",
+  "Walpeup_Gums",               "Walpeup, Vic",
+  "Crystal_Brook_Randals",      "Crystal Brook, SA",
+  "Wharminda_Bonanza",          "Wharminda, SA",
+  "Wynarka_Tanks",              "Wynarka, SA"
+)
+
+site_info <- profile %>%
+  group_by(site, site_number) %>%
+  summarise(years  = paste(sort(unique(year)), collapse = ", "),
+            points = n(),
+            lat    = mean(latitude,  na.rm = TRUE),
+            lon    = mean(longitude, na.rm = TRUE),
+            .groups = "drop") %>%
+  left_join(towns, by = "site") %>%
+  arrange(site_number)
+```
+
+## Overview
+
+`r n_distinct(profile$site)` sites, `r nrow(profile)` sample-point records and
+`r nrow(distinct(profile, site, year))` site-years (`r paste(sort(unique(profile$year)), collapse = ", ")`).
+Each record has a sampling date (where known), coordinates (EPSG 4326), zone, treatment,
+starting mineral N (kg/ha) and starting soil water (mm), at three levels of detail:
+
+| File | One row per | Contents |
+|---|---|---|
+| `depth_layers` | sample point and lab layer | N and soil water for each layer |
+| `depth_groups` | sample point and depth group | layers summed to 0-20, 20-60, 60-100 cm |
+| `profile` | sample point | totals for the whole profile |
+
+## Sites
+
+```{r sites}
+site_info %>%
+  transmute(Site = site, `Closest town` = closest_town, Years = years,
+            `Sample points (all years)` = points,
+            `Mean lat` = round(lat, 3), `Mean lon` = round(lon, 3)) %>%
+  kable()
+```
+
+## Map
+
+Each dot is a sample point. Use the layer control to switch sites on and off,
+and zoom in on a site to see the individual points.
+
+```{r map, out.width="100%"}
+pal <- colorFactor("Dark2", domain = sort(unique(profile$site)))
+
+m <- leaflet(profile %>% filter(!is.na(longitude), !is.na(latitude))) %>%
+  addProviderTiles(providers$Esri.WorldImagery, group = "Satellite") %>%
+  addProviderTiles(providers$OpenStreetMap,     group = "Street map") %>%
+  addScaleBar(position = "bottomleft")
+
+for (s in sort(unique(profile$site))) {
+  d <- profile %>% filter(site == s, !is.na(longitude), !is.na(latitude))
+  m <- m %>% addCircleMarkers(
+    data = d, lng = ~longitude, lat = ~latitude, radius = 5, weight = 1,
+    color = "black", fillColor = pal(s), fillOpacity = 0.85, group = s,
+    popup = ~paste0("<b>", site, "</b><br>Year: ", year, " (", sampling_timing, ")",
+                    "<br>Point: ", sample_id,
+                    "<br>Date: ", ifelse(is.na(sampling_date), "not recorded", format(sampling_date)),
+                    "<br>Zone: ", zone, " ", zone_description,
+                    "<br>Treatment: ", ifelse(is.na(treatment), "none", treatment),
+                    "<br>Mineral N: ", round(min_n_kg_ha, 1), " kg/ha",
+                    "<br>Soil water: ", round(soil_water_mm, 1), " mm"))
+}
+
+m %>%
+  addLayersControl(baseGroups = c("Satellite", "Street map"),
+                   overlayGroups = sort(unique(profile$site)),
+                   options = layersControlOptions(collapsed = FALSE)) %>%
+  addLegend("topright", pal = pal, values = sort(unique(profile$site)), title = "Site")
+```
+
+## Summary statistics
+
+### Whole profile (0-100 cm) by site and year
+
+Mineral N in kg/ha and soil water in mm. A mean is over the points that have a value;
+`n_N` and `n_water` show how many that is.
+
+```{r stats_profile}
+profile %>%
+  group_by(Site = site, Year = year, Timing = sampling_timing) %>%
+  summarise(Points = n(),
+            n_N = sum(!is.na(min_n_kg_ha)),
+            `N mean` = round(mean(min_n_kg_ha, na.rm = TRUE), 1),
+            `N sd`   = round(sd(min_n_kg_ha,   na.rm = TRUE), 1),
+            `N min`  = round(suppressWarnings(min(min_n_kg_ha, na.rm = TRUE)), 1),
+            `N max`  = round(suppressWarnings(max(min_n_kg_ha, na.rm = TRUE)), 1),
+            n_water = sum(!is.na(soil_water_mm)),
+            `Water mean` = round(mean(soil_water_mm, na.rm = TRUE), 1),
+            `Water sd`   = round(sd(soil_water_mm,   na.rm = TRUE), 1),
+            `Water min`  = round(suppressWarnings(min(soil_water_mm, na.rm = TRUE)), 1),
+            `Water max`  = round(suppressWarnings(max(soil_water_mm, na.rm = TRUE)), 1),
+            .groups = "drop") %>%
+  mutate(across(where(is.numeric), ~ ifelse(is.infinite(.x) | is.nan(.x), NA, .x))) %>%
+  kable()
+```
+
+### By depth group
+
+Mean per depth group, over the points that have a value.
+
+```{r stats_depth}
+groups %>%
+  group_by(Site = site, Year = year, `Depth group` = depth_group) %>%
+  summarise(`N mean (kg/ha)`     = round(mean(min_n_kg_ha,   na.rm = TRUE), 1),
+            `Water mean (mm)`    = round(mean(soil_water_mm, na.rm = TRUE), 1),
+            .groups = "drop") %>%
+  mutate(across(where(is.numeric), ~ ifelse(is.nan(.x), NA, .x))) %>%
+  pivot_wider(names_from = `Depth group`,
+              values_from = c(`N mean (kg/ha)`, `Water mean (mm)`)) %>%
+  kable()
+```
+
+### By zone
+
+```{r stats_zone}
+profile %>%
+  group_by(Site = site, Year = year, Zone = zone, Description = zone_description) %>%
+  summarise(Points = n(),
+            `N mean (kg/ha)`  = round(mean(min_n_kg_ha,   na.rm = TRUE), 1),
+            `Water mean (mm)` = round(mean(soil_water_mm, na.rm = TRUE), 1),
+            .groups = "drop") %>%
+  mutate(across(where(is.numeric), ~ ifelse(is.nan(.x), NA, .x))) %>%
+  kable()
+```
+
+## What is missing
+
+### Sampling dates and values by site and year
+
+```{r missing}
+profile %>%
+  group_by(Site = site, Year = year, Timing = sampling_timing) %>%
+  summarise(Points = n(),
+            `No date`   = sum(is.na(sampling_date)),
+            `No N`      = sum(is.na(min_n_kg_ha)),
+            `No water`  = sum(is.na(soil_water_mm)),
+            `No zone description` = sum(is.na(zone_description)),
+            `First date` = as.character(suppressWarnings(min(sampling_date, na.rm = TRUE))),
+            `Last date`  = as.character(suppressWarnings(max(sampling_date, na.rm = TRUE))),
+            .groups = "drop") %>%
+  mutate(`First date` = ifelse(`First date` == "Inf", NA, `First date`),
+         `Last date`  = ifelse(`Last date`  == "-Inf", NA, `Last date`)) %>%
+  kable()
+```
+
+### Points with no sampling date
+
+```{r no_dates}
+nd <- profile %>% filter(is.na(sampling_date)) %>%
+  group_by(Site = site, Year = year) %>%
+  summarise(Points = n(), `Point IDs` = paste(sort(sample_id), collapse = ", "), .groups = "drop")
+if (nrow(nd) == 0) cat("No points are missing a sampling date.") else kable(nd)
+```
+
+### Dates that were assumed, not recorded
+
+These records have a date in the data, but it was set by us rather than read from
+the field record. Confirm or replace them.
+
+| Site | Year | Date used | Basis |
+|---|---|---|---|
+| Walpeup MRS125 | 2024 | 2024-03-20 | assumed |
+| Crystal Brook Brians House | 2024 | 2024-04-02 | assumed |
+| Walpeup MRS125 | 2025 | none | samples received 2025-06-04 |
+| Crystal Brook Brians House | 2025 | none | samples received 2025-05-08 |
+| Wynarka Mervs West | 2025 | 2025-03-18 | read from the sample labels |
+
+### Measurements not available
+
+- **2025 Walpeup MRS125 and Brians House:** mineral N only, with no soil water.
+- **Woodys 2025, WOD21:** the 40-60 cm moisture of 96.7% was blanked (probably a mistyped dry weight of 20.63 g), so its soil water total is NA.
+- **Zone descriptions:** Wharminda Bonanza zone 4 has none; Wynarka Mervs West and Tanks still read "TBC" in the metadata workbook.
+
+## Assumptions
+
+- **Bulk density:** 1.3 g/cm3 for every layer, not measured.
+- **Mineral N (kg/ha):** (nitrate-N + ammonium-N, mg/kg) x 1.3 x layer thickness (cm) / 10. Results below the detection limit ("<") are set to 0.
+- **Soil water (mm):** gravimetric moisture (%, dry-weight basis) / 100 x 1.3 x thickness (cm) x 10, where moisture = (wet - dry) / (dry - chip) x 100. Moisture above 40% is treated as a data error and blanked.
+- **Strict totals:** if any layer is missing, the depth-group and profile total is NA, not a partial sum.
+- **Zones:** from the current zone shapefile named in the site metadata, by locating each sample point inside it. If the team revises a zone file, rerun the site scripts and the stacking step. Field-recorded clusters differ from these zones at several sites; the shapefile zone is used.
+- **Treatment:** from the trial plan polygons. Points outside a strip have no treatment.
+- **Coordinates:** WGS 84 (EPSG 4326). Wynarka Mervs West uses the field GPS record rather than the lab-sheet X/Y.
+- **Point naming:** at Woodys, WOD3__1 is treated as WOD03 and the unvisited original is dropped.
+- **Split 60-100 cm water:** at Tanks and Randals, water was weighed as two halves (60-80 and 80-100) and summed. N comes from the bulk 60-100 sample.
+- **Closest towns:** taken from the site names, not measured.
+
+## Code and saved files
+
+**Where things are.** Data and outputs: `H:\Output-1\0.Site-info\soil_N_H20_data`. Site folders: `H:\Output-1\<site number>\6.Soil_Data\`. Metadata workbook: `H:\Output-1\0.Site-info\names of treatments per site 2025 metadata and other info.xlsx`. It holds the zone shapefile paths (sheet `file location etc`) and the zone descriptions (sheet `zone_details`).
+
+**Scripts** (save location: *add folder here*)
+
+| Year | Script | What it does |
+|---|---|---|
+| 2026 | Steps 2, 3, 3 Extra (Tanks), 5, 6, 7 | Compile 2026 N and soil water for all 8 sites, one site at a time (Tanks needs `Step3_Extra_Step_TANKS_Cal_Soil_water_profile.R`) |
+| 2025 | `PrePlant_2025_Site1_Walpeup_layers.R` | Walpeup MRS125 (N only) |
+| 2025 | `PrePlant_2025_Site2_BriansHouse_layers.R` | Brians House (N only) |
+| 2025 | `Baseline_2025_Site3_MervsWest_layers.R` | Mervs West |
+| 2025 | `Baseline_2025_Site4_Woodys_layers.R` | Woodys |
+| 2025 | `Baseline_2025_Site5_WalpeupGums_layers.R` | Gums |
+| 2025 | `Baseline_2025_Site6_Randals_layers.R` | Randals |
+| 2024 | *add script names here* | Walpeup MRS125 and Brians House baselines |
+| All | `Step8_Stack_all_years.R` | Stacks all the files below into the three `All_sites_2024_2026_...` files |
+| All | `Sandy_Soils_II_N_water_handover.Rmd` | This report |
+
+**Saved files** (one pair per site-year, in the data folder; the stacked files are built from these)
+
+- **2026:** `All_sites_pre_sowing_depth_layers_N_and_H2O.csv` and `All_sites_pre_sowing_profile_N_and_H2O.csv`
+- **2025:** `PrePlant_2025_Walpeup_MRS125_...`, `PrePlant_2025_Crystal_Brook_Brians_House_...`, `Baseline_2025_Wynarka_Mervs_West_...`, `Baseline_2025_Wharminda_Woodys_...`, `Baseline_2025_Walpeup_Gums_...`, `Baseline_2025_Crystal_Brook_Randals_...`, each as `..._depth_layers_N_and_H2O.csv` and `..._depth_groups_N_and_H2O.csv`
+- **2024:** `Baseline_2024_Walpeup_MRS125_...` and `Baseline_2024_Crystal_Brook_Brians_House_...`, same two endings
+- **Stacked:** `All_sites_2024_2026_N_and_H2O_depth_layers.csv`, `..._depth_groups.csv` and `..._profile.csv`
+
+**To refresh.** If a zone file, trial plan or lab result changes, rerun that site-year's script, then `Step8_Stack_all_years.R`, then knit this report. The per-site files are snapshots and do not update themselves.
