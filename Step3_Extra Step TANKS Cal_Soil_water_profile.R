@@ -125,7 +125,12 @@ df <- df %>%
   )
 df <- df %>%
   relocate(DepthUpper, DepthLower, DepthCm, .after = SampleDepth)
-
+## Tanks: water was measured on the bulk 60-100 sample AND on 60-80 / 80-100.
+  ## N exists only for 60-100, and summing all three double counts 60-100 cm,
+  ## so keep the bulk 60-100 sample only
+  df <- df %>% filter(!SampleDepth %in% c("60-80", "80-100"))
+  
+ 
 
 ## convert to kg/ha ###########################################################
 names(df)

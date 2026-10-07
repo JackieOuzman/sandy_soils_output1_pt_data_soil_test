@@ -17,7 +17,11 @@ files_layers <- c(
   "Baseline_2024_Crystal_Brook_Brians_House_depth_layers_N_and_H2O.csv",   # 2024, site 2
   "PrePlant_2025_Walpeup_MRS125_depth_layers_N_and_H2O.csv",             # 2025, site 1 (N only)
   "PrePlant_2025_Crystal_Brook_Brians_House_depth_layers_N_and_H2O.csv",   # 2025, site 2 (N only)
-  "Baseline_2025_Wynarka_Mervs_West_depth_layers_N_and_H2O.csv" # 2025, site 3
+  "Baseline_2025_Wynarka_Mervs_West_depth_layers_N_and_H2O.csv", # 2025, site 3,
+  "Baseline_2025_Wharminda_Woodys_depth_layers_N_and_H2O.csv" ,          # 2025, site 4
+  "Baseline_2025_Walpeup_Gums_depth_layers_N_and_H2O.csv",
+  "Baseline_2025_Crystal_Brook_Randals_depth_layers_N_and_H2O.csv"
+  
 )
 files_groups <- c(
   "All_sites_pre_sowing_depth_groups_N_and_H2O.csv",
@@ -25,11 +29,14 @@ files_groups <- c(
   "Baseline_2024_Crystal_Brook_Brians_House_depth_groups_N_and_H2O.csv",
   "PrePlant_2025_Walpeup_MRS125_depth_groups_N_and_H2O.csv",
   "PrePlant_2025_Crystal_Brook_Brians_House_depth_groups_N_and_H2O.csv",
-  "Baseline_2025_Wynarka_Mervs_West_depth_groups_N_and_H2O.csv"
+  "Baseline_2025_Wynarka_Mervs_West_depth_groups_N_and_H2O.csv",
+  "Baseline_2025_Wharminda_Woodys_depth_groups_N_and_H2O.csv",
+  "Baseline_2025_Walpeup_Gums_depth_groups_N_and_H2O.csv",
+  "Baseline_2025_Crystal_Brook_Randals_depth_groups_N_and_H2O.csv"
 )
 
 depth_labels <- c("0-20 cm", "20-60 cm", "60-100 cm")
-sum_or_na    <- function(x) if (all(is.na(x))) NA_real_ else sum(x, na.rm = TRUE)
+sum_or_na    <- function(x) if (any(is.na(x))) NA_real_ else sum(x)   # strict: any missing layer makes the total NA**
 
 # read every file as text so the different years bind cleanly, then convert below
 read_stack <- function(files) {
